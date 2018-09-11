@@ -18,9 +18,9 @@ def pythagoreansParallel(n: Int) = {
   // We need to have at least as many computational parts as the number of cores
   val numberOfChunks: Int = Runtime.getRuntime().availableProcessors()
   val evenlyDistributedChunkSize: Int = Math.floor(n.toFloat / numberOfChunks).toInt
-  println(s"number of chunks = ${numberOfChunks}, evenlyDistributedChunkSize = ${evenlyDistributedChunkSize}")
+  // println(s"number of chunks = ${numberOfChunks}, evenlyDistributedChunkSize = ${evenlyDistributedChunkSize}")
   val leftOvers: Int = n - evenlyDistributedChunkSize * numberOfChunks
-  println(s"Left overs = ${leftOvers}")
+  // println(s"Left overs = ${leftOvers}")
   // Having more chunks is better than having few, because more chunks help keep the cores busy
   // After a certain number of large chunks, having more chunks has little benefit
   val futures = (2 to numberOfChunks).scanLeft((1, evenlyDistributedChunkSize)) { (acc, elem) =>
@@ -33,7 +33,7 @@ def pythagoreansParallel(n: Int) = {
       (newStart, newEnd)
   } map { case (start, end) =>
 	// Having more threads than the number of cores does not help
-	println((start, end))
+	// println((start, end))
     Future { pythagoreans(start, end).toList }
   }
   Future.foldLeft(futures) (List[(Int, Int, Int)]()) { case (acc, list) =>
