@@ -21,8 +21,8 @@ def pythagoreansParallel(n: Int) = {
   println(s"number of chunks = ${numberOfChunks}, evenlyDistributedChunkSize = ${evenlyDistributedChunkSize}")
   val leftOvers: Int = n - evenlyDistributedChunkSize * numberOfChunks
   println(s"Left overs = ${leftOvers}")
-  // Having more parts is better than having few, because more parts help keep the cores busy
-  // After a certain number of large parts, having more parts has little benefit
+  // Having more chunks is better than having few, because more chunks help keep the cores busy
+  // After a certain number of large chunks, having more chunks has little benefit
   val futures = (2 to numberOfChunks).scanLeft((1, evenlyDistributedChunkSize)) { (acc, elem) =>
     val (start, end) = acc
     val newStart = end + 1
