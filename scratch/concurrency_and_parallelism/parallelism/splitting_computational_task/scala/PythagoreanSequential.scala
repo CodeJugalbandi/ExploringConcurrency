@@ -1,7 +1,7 @@
 def pythagoreans(n: Int) = for {
   x <- 1 to n
-  y <- 1 to n
-  z <- 1 to n
+  y <- x to n
+  z <- y to n
   if (x*x + y*y == z*z)
 } yield (x,y,z)
 
