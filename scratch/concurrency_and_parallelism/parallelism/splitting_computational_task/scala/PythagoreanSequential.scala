@@ -1,3 +1,12 @@
+// with interchanged sides (3,4,5) and (4,3,5)
+// def pythagoreans(start:Int, end: Int) = for {
+//   x <- 1 to end
+//   y <- 1 to end
+//   z <- 1 to end
+//   if (x*x + y*y == z*z)
+// } yield (x,y,z)
+
+// without interchanged sides (3,4,5) and (4,3,5), only (3,4,5)
 def pythagoreans(n: Int) = for {
   x <- 1 to n
   y <- x to n
@@ -16,6 +25,7 @@ def time[T, R](f: Function[T, R]): Function[T, R] = {
 } 
 
 // Sequential Pythagoreans (Results averaged over 5 runs)
+// (with interchanged sides (3,4,5) and (4,3,5))
 // ======================================================
 println(time(pythagoreans)(10))     // 11.6ms
 // println(time(pythagoreans)(100))    // 88ms
@@ -25,3 +35,5 @@ println(time(pythagoreans)(10))     // 11.6ms
 // println(time(pythagoreans)(1000))   // 13506.6ms
 // println(time(pythagoreans)(1250))   // 18704ms
 // println(time(pythagoreans)(1500))   // 39720.4ms
+
+println("DONE")
