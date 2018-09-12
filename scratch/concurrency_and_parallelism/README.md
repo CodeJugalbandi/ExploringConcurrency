@@ -1,11 +1,11 @@
 # Concurrency And Parallelism
 
-Concurrency and Parallelism, these two words have been used quite synonomously and have been easily interchanged with the other.  But many, like Phil Wadler, Simon Peyton Jones and Simon Marlow have given very precise distinctions between these.  In this melody, we will delineate concurrency and parallelism using two problems.
+Concurrency and Parallelism, these two words have been used quite synonomously and have been easily interchanged with the other.  But many, like Phil Wadler, Simon Peyton Jones and Simon Marlow have given very precise distinctions between these.  In this melody, we will delineate concurrency and parallelism using two problems.BRAHMA
 
 * _Concurrency_: Creating an Echo TCP-Server
 * _Parallelism_: Splitting a Task (I/O or Computational task)
 
-**BRAMHA** Lets tackle Concurrency by looking at this single-threaded Echo TCP-Server in Java.  It waits for connections after creating a ```ServerSocket```.  Once it accepts an incoming socket connection from a client, it goes into an infinite loop, serving that client, by echoing whatever the client sends, except for a ```QUIT``` message.  
+**BRAHMA** Lets tackle Concurrency by looking at this single-threaded Echo TCP-Server in Java.  It waits for connections after creating a ```ServerSocket```.  Once it accepts an incoming socket connection from a client, it goes into an infinite loop, serving that client, by echoing whatever the client sends, except for a ```QUIT``` message.  
 
 ```java
 public class Server implements AutoCloseable {
@@ -68,7 +68,7 @@ public class Server implements AutoCloseable {
   }
 }
 ```
-**BRAMHA** Lets start this server.
+**BRAHMA** Lets start this server.
 
 ```shell
 $> java Server
@@ -77,7 +77,7 @@ Thread[main,5,main] Server Ready: ServerSocket[addr=localhost/127.0.0.1,localpor
 Thread[main,5,main] Waiting for Incoming connections...
 ```
 
-**BRAMHA** Let me use ```telnet``` as one of the clients and send ```HELO```.  It echoes that back.  
+**BRAHMA** Let me use ```telnet``` as one of the clients and send ```HELO```.  It echoes that back.  
 
 ```shell 
 $> telnet localhost 8080
@@ -90,7 +90,7 @@ HELO
 HELO
 ```
 
-**BRAMHA** Look at the server log, the ```main thread``` is servicing this incoming request:
+**BRAHMA** Look at the server log, the ```main thread``` is servicing this incoming request:
 
 ```shell
 Thread[main,5,main] Received Connection from Socket[addr=/127.0.0.1,port=49314,localport=8080]
@@ -98,7 +98,7 @@ Thread[main,5,main] Server Got => HELO
 Thread[main,5,main] Server echoing line back => HELO
 ```
 
-**BRAMHA** I can also add more clients that connect to this server and I do this by running 4 clients who try to connect at the same time.
+**BRAHMA** I can also add more clients that connect to this server and I do this by running 4 clients who try to connect at the same time.
 
 ```java
 public class Client implements AutoCloseable {
@@ -160,7 +160,7 @@ public class Client implements AutoCloseable {
 }
 ```
 
-**BRAMHA** As you can see, these are simply waiting in the queue to be served.  
+**BRAHMA** As you can see, these are simply waiting in the queue to be served.  
 
 ```shell
 $> java Client
@@ -174,7 +174,7 @@ Sending to Server: HELO1
 Sending to Server: HELO3
 ```
 
-**BRAMHA** Unless I send ```QUIT``` from the telnet session, they won't be served, because the ```main thread``` is busy serving it and does not even blink for other incoming requests.
+**BRAHMA** Unless I send ```QUIT``` from the telnet session, they won't be served, because the ```main thread``` is busy serving it and does not even blink for other incoming requests.
 
 ```shell
 $> telnet localhost 8080
@@ -190,7 +190,7 @@ Ok
 Connection closed by foreign host.
 ```
 
-**BRAMHA** Now, the waiting clients are served.
+**BRAHMA** Now, the waiting clients are served.
 
 ```shell
 Thread[main,5,main] Server Got => QUIT
@@ -213,7 +213,7 @@ Thread[main,5,main] Server Closing Connection by Sending => Ok
 
 **KRISHNA** Oh, of what use is such a server?
 
-**BRAMHA** Exactly, so lets make it concurrent, and the way I do it here is wrap the method call ```handleNewClient(...)``` in a ```CompletableFuture```.  If I were to use the traditional ```Thread``` construct, a new thread needs to be spawned and the server would serve that client on that thread.  But we could do the same using a more modern construct - ```CompletableFuture```
+**BRAHMA** Exactly, so lets make it concurrent, and the way I do it here is wrap the method call ```handleNewClient(...)``` in a ```CompletableFuture```.  If I were to use the traditional ```Thread``` construct, a new thread needs to be spawned and the server would serve that client on that thread.  But we could do the same using a more modern construct - ```CompletableFuture```
 
 ```java
 public class Server implements AutoCloseable {
