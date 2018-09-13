@@ -1,8 +1,8 @@
 // with interchanged sides (3,4,5) and (4,3,5)
-// def pythagoreans(start:Int, end: Int) = for {
-//   x <- 1 to end
-//   y <- 1 to end
-//   z <- 1 to end
+// def pythagoreans(n: Int) = for {
+//   x <- 1 to n
+//   y <- 1 to n
+//   z <- 1 to n
 //   if (x*x + y*y == z*z)
 // } yield (x,y,z)
 
