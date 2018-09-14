@@ -16,15 +16,18 @@ def pythagoreans(start:Int, end: Int) = for {
 
 
 def pythagoreansParallel2(n: Int) = {
-  // Have at least as many computational chunks as the number of cores
+  // Have at least as many threads as the number of cores
   val numberOfCores = Runtime.getRuntime().availableProcessors()
   // println(s"number of cores = ${numberOfCores}, input = ${n}")
+  // Having more threads than the number of cores does not help.  
+  // As this is an evenly distributed problem, we will create 
+  // number of chunks == number of cores.
   val possibleChunks = if (n <= numberOfCores) 1 else numberOfCores
   val evenlyDistributedChunkSize = Math.ceil(n.toFloat / possibleChunks).toInt
   val numberOfChunks = Math.ceil(n.toFloat / evenlyDistributedChunkSize).toInt
   // println(s"number of chunks = ${numberOfChunks}, evenlyDistributedChunkSize = ${evenlyDistributedChunkSize}")
   // Having more chunks is better than having few, because more chunks help keep the cores busy
-  // Also, after a certain number of large chunks, having more chunks has little benefit
+  // Also, after a certain number of large chunks, having more chunks have little benefit
   (2 to numberOfChunks).scanLeft((1, evenlyDistributedChunkSize)) { (acc, elem) =>
     val (start, end) = acc
     val newStart = end + 1
@@ -54,26 +57,29 @@ def time[T, R](f: Function[T, R]): Function[T, R] = {
 // Parallelization using Parallel Lists (Results averaged over 5 runs)
 // (without interchanged sides (3,4,5) and (4,3,5), only (3,4,5))
 // ===================================================================
-// println(time(pythagoreansParallel2)(10))   // 68.6ms
-// println(time(pythagoreansParallel2)(100))  // 143.8ms
-// println(time(pythagoreansParallel2)(250))  // 366.6ms
-// println(time(pythagoreansParallel2)(500))  // 759ms
-// println(time(pythagoreansParallel2)(750))  // 759ms
-// println(time(pythagoreansParallel2)(1000)) // 1924.8ms
-// println(time(pythagoreansParallel2)(1250)) // 2649.4ms
-// println(time(pythagoreansParallel2)(1500)) // 3815.2ms
+// println(time(pythagoreansParallel2)(10))   
+// println(time(pythagoreansParallel2)(100))  
+// println(time(pythagoreansParallel2)(250))  
+// println(time(pythagoreansParallel2)(500))  
+// println(time(pythagoreansParallel2)(750))  
+// println(time(pythagoreansParallel2)(1000)) 
+// println(time(pythagoreansParallel2)(1250)) 
+// println(time(pythagoreansParallel2)(1500)) 
 
-// Parallelization using Futures (Results averaged over 5 runs)
+// Parallelization (Results averaged over 5 runs)
 // (without interchanged sides (3,4,5) and (4,3,5), only (3,4,5))
-// ============================================================
-// println(time(pythagoreansParallel(10)))   // 37.2ms
-// println(time(pythagoreansParallel(100)))  // 112ms
-// println(time(pythagoreansParallel(250)))  // 274.4ms
-// println(time(pythagoreansParallel(500)))  // 635.6ms
-// println(time(pythagoreansParallel(750)))  // 1234.2ms
-// println(time(pythagoreansParallel(1000))) // 1766ms
-// println(time(pythagoreansParallel(1250))) // 2121.4ms
-// println(time(pythagoreansParallel(1500))) // 3655.6ms
+//==================================================================================+
+//                                               |  Using Futures | Using Par List  |
+//==================================================================================+
+// println(time(pythagoreansParallel(10)))   //  |    37.2ms      |     68.6ms      |
+// println(time(pythagoreansParallel(100)))  //  |    112ms       |     143.8ms     |
+// println(time(pythagoreansParallel(250)))  //  |    274.4ms     |     366.6ms     |
+// println(time(pythagoreansParallel(500)))  //  |    635.6ms     |     759ms       |
+// println(time(pythagoreansParallel(750)))  //  |    1234.2ms    |     759ms       |
+// println(time(pythagoreansParallel(1000))) //  |    1766ms      |     1924.8ms    |
+// println(time(pythagoreansParallel(1250))) //  |    2121.4ms    |     2649.4ms    |
+// println(time(pythagoreansParallel(1500))) //  |    3655.6ms    |     3815.2ms    |
+//==================================================================================+
 
 // Sequential Pythagoreans (Results averaged over 5 runs)
 // (without interchanged sides (3,4,5) and (4,3,5), only (3,4,5))
@@ -87,30 +93,21 @@ def time[T, R](f: Function[T, R]): Function[T, R] = {
 // println(time(pythagoreans)(1250))   // 4917.8ms
 // println(time(pythagoreans)(1500))   // 8180.2ms
 
-//--------------------< SET II >---------------------------
-// Parallelization using Parallel Lists (Results averaged over 5 runs)
-// (with interchanged sides (3,4,5) and (4,3,5))
-// ===================================================================
-// println(time(pythagoreansParallel2)(10))   // 65.6ms
-// println(time(pythagoreansParallel2)(100))  // 119ms
-// println(time(pythagoreansParallel2)(250))  // 246.4ms
-// println(time(pythagoreansParallel2)(500))  // 1471ms
-// println(time(pythagoreansParallel2)(750))  // 1307.4ms
-// println(time(pythagoreansParallel2)(1000)) // 2128.6ms
-// println(time(pythagoreansParallel2)(1250)) // 1711.6ms
-// println(time(pythagoreansParallel2)(1500)) // 2389.2ms
 
-// Parallelization using Futures (Results averaged over 5 runs)
+// Parallelization (Results averaged over 5 runs)
 // (with interchanged sides (3,4,5) and (4,3,5))
-// ============================================================
-// println(time(pythagoreansParallel(10)))   // 31.8ms
-// println(time(pythagoreansParallel(100)))  // 108.8ms
-// println(time(pythagoreansParallel(250)))  // 323.2ms
-// println(time(pythagoreansParallel(539)))  // 1345ms
-// println(time(pythagoreansParallel(750)))  // 1095.8ms
-// println(time(pythagoreansParallel(1000))) // 1890.6ms
-// println(time(pythagoreansParallel(1250))) // 1422.5ms
-// println(time(pythagoreansParallel(1500))) // 2194ms
+//==================================================================================+
+//                                               |  Using Futures | Using Par List  |
+//==================================================================================+
+// println(time(pythagoreansParallel(10)))   //  |    31.8ms      |   65.6ms        |
+// println(time(pythagoreansParallel(100)))  //  |    108.8ms     |   119ms         |
+// println(time(pythagoreansParallel(250)))  //  |    323.2ms     |   246.4ms       |
+// println(time(pythagoreansParallel(539)))  //  |    1345ms      |   1471ms        |
+// println(time(pythagoreansParallel(750)))  //  |    1095.8ms    |   1307.4ms      |
+// println(time(pythagoreansParallel(1000))) //  |    1890.6ms    |   2128.6ms      |
+// println(time(pythagoreansParallel(1250))) //  |    1422.5ms    |   1711.6ms      |
+// println(time(pythagoreansParallel(1500))) //  |    2194ms      |   2389.2ms      |
+//==================================================================================+
 
 // Sequential Pythagoreans (Results averaged over 5 runs)
 // (with interchanged sides (3,4,5) and (4,3,5))

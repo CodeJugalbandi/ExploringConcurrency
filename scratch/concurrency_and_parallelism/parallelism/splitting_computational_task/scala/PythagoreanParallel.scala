@@ -23,15 +23,18 @@ def pythagoreans(start:Int, end: Int) = for {
 } yield (x,y,z)
 
 def pythagoreansParallel(n: Int) = {
-  // Have at least as many computational chunks as the number of cores
+  // Have at least as many threads as the number of cores
   val numberOfCores = Runtime.getRuntime().availableProcessors()
   // println(s"number of cores = ${numberOfCores}, input = ${n}")
+  // Having more threads than the number of cores does not help.  
+  // As this is an evenly distributed problem, we will create 
+  // number of chunks == number of cores.
   val possibleChunks = if (n <= numberOfCores) 1 else numberOfCores
   val evenlyDistributedChunkSize = Math.ceil(n.toFloat / possibleChunks).toInt
   val numberOfChunks = Math.ceil(n.toFloat / evenlyDistributedChunkSize).toInt
   // println(s"number of chunks = ${numberOfChunks}, evenlyDistributedChunkSize = ${evenlyDistributedChunkSize}")
   // Having more chunks is better than having few, because more chunks help keep the cores busy
-  // Also, after a certain number of large chunks, having more chunks has little benefit
+  // Also, after a certain number of large chunks, having more chunks have little benefit
   val futures = (2 to numberOfChunks)
     .scanLeft((1, evenlyDistributedChunkSize)) { (acc, elem) =>
       val (start, end) = acc
@@ -44,7 +47,6 @@ def pythagoreansParallel(n: Int) = {
     }
     .filter { case (start, end) => start <= n }
     .map { case (start, end) =>
-	    // Having more threads than the number of cores does not help
       // println((start, end))
       Future { pythagoreans(start, end).toList }
     }
@@ -110,6 +112,5 @@ def time[T](f: Future[T]) = {
 // println(time(pythagoreans)(1000))   // 13506.6ms
 // println(time(pythagoreans)(1250))   // 18704ms
 // println(time(pythagoreans)(1500))   // 39720.4ms
-
 
 println("DONE")

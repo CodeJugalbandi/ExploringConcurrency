@@ -49,4 +49,5 @@ println(time(pythagoreans)(10))     // 10.4ms
 // println(time(pythagoreans)(1000))   // 2649.6ms
 // println(time(pythagoreans)(1250))   // 4917.8ms
 // println(time(pythagoreans)(1500))   // 8180.2ms
+
 println("DONE")
