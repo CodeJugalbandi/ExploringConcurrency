@@ -2,7 +2,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Try, Failure, Success}
 import scala.concurrent.{Future, Promise}
 
-def getData(url: String): Future[String] = {
+def getRequestData(url: String): Future[String] = {
   val p = Promise[String]()
   Future {
     try {
@@ -20,17 +20,12 @@ val placesNearbyUrl = s"https://geographic-services.herokuapp.com/places/nearby?
 val weatherUrl = s"https://geographic-services.herokuapp.com/weather?lat=19.01&lon=72.8"
 
 val startTime = System.currentTimeMillis()
-val placesNearbyData = getData(placesNearbyUrl)
-val weatherData = getData(weatherUrl)
+val placesNearbyData = getRequestData(placesNearbyUrl)
+val weatherData = getRequestData(weatherUrl)
 val weatherAndPlacesNearby = for {
   placesNearby <- placesNearbyData
   weather <- weatherData
-} yield s"""
-          | {
-		  |   "weather"     : $weather,
-		  |   "placesNearby": $placesNearby
-		  | }
-         """.stripMargin
+} yield s"""{ "weather" : $weather, "placesNearby": $placesNearby }"""
 
 weatherAndPlacesNearby.onComplete {
   case Success(data) => {
