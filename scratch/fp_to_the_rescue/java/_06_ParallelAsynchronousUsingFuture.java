@@ -3,7 +3,7 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-class ParallelAsynchronousUsingFuture {
+class _06_ParallelAsynchronousUsingFuture {
   private static String getRequestData(String urlStr) throws MalformedURLException, IOException {
     URL url = new URL(urlStr);
     BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));

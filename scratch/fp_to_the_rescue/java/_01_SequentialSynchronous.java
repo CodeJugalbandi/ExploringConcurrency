@@ -1,7 +1,7 @@
 import java.net.*;
 import java.io.*;
 
-class SequentialSynchronous {
+class _01_SequentialSynchronous {
   private static String getRequestData(String urlStr) throws MalformedURLException, IOException {
     URL url = new URL(urlStr);
     BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
