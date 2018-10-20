@@ -22,16 +22,7 @@
 (def radius 25)
 (def units "km")
 
-(println "=== Sequential fetch ===")
 (time
   (let [weather (slurp (weather-url test-lat test-lon))
         places (slurp (nearby-url test-lat test-lon radius units))]
     (print-info weather places)))
-
-(println "=== Concurrent fetch (futures) ===")
-(time
-      (let [weather (future (slurp (weather-url test-lat test-lon)))
-            places (future (slurp (nearby-url test-lat test-lon radius units)))]
-        (print-info @weather @places)))
-
-(shutdown-agents)
