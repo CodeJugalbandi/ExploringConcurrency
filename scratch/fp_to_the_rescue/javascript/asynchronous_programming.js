@@ -19,10 +19,10 @@ const placesNearbyUrl = "https://geographic-services.herokuapp.com/places/nearby
 
 console.time('Time Taken');
 Promise.all([getRequestData(weatherUrl), getRequestData(placesNearbyUrl)])
-  .then(([weather, placesNearby]) => JSON.parse(`{ "weather": ${weather}, "placesNearby": ${placesNearby} }`))
+  .then(([weather, placesNearby]) => `{ "weather": ${weather}, "placesNearby": ${placesNearby} }`)
   .catch(error => `Could not get data => ${error}`)
   .then(result => {
      console.timeEnd('Time Taken');
-	 console.info(result);
+	 console.info(JSON.parse(result));
   });
   
