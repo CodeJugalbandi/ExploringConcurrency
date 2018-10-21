@@ -9,7 +9,7 @@ interface SupplierThrowsException<T, E extends Throwable> {
   T get() throws E;
 }
 
-class _07_ParallelAsynchronousUsingCompleteableFuture {
+class _08_ParallelAsynchronousUsingCompleteableFuturePushGeneralPurpose {
   private static String getRequestData(String urlStr) throws MalformedURLException, IOException {
     URL url = new URL(urlStr);
     BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
@@ -22,13 +22,25 @@ class _07_ParallelAsynchronousUsingCompleteableFuture {
   }
   
   private static <T, E extends Throwable> CompletableFuture<T> supplyAsync(SupplierThrowsException<T, E> ste) {
-	return CompletableFuture.supplyAsync(() -> {
+    return CompletableFuture.supplyAsync(() -> {
       try {
         return ste.get();	
       } catch (Throwable t) {
-	    throw new RuntimeException(t);
+       throw new RuntimeException(t);
       }
-	});
+    });
+  }
+  
+  private static <T> CompletableFuture<List<T>> all(List<CompletableFuture<T>> cfs) {
+    CompletableFuture<List<T>> future = new CompletableFuture<>();
+    future.runAsync(() -> {
+      try {
+        future.complete(cfs.stream().map(cf -> cf.join()).collect(Collectors.toList()));  
+      } catch (Throwable t) {
+        future.completeExceptionally(t);
+      }
+    });
+    return future;
   }
 
   public static void main(String[] args) throws Exception {
@@ -38,18 +50,21 @@ class _07_ParallelAsynchronousUsingCompleteableFuture {
     String weatherUrl = "https://geographic-services.herokuapp.com/weather?lat=19.01&lon=72.8";
 	 
     long startTime = System.currentTimeMillis();
-	CompletableFuture<String> placesNearby = supplyAsync(() -> getRequestData(placesNearbyUrl));
+    CompletableFuture<String> placesNearby = supplyAsync(() -> getRequestData(placesNearbyUrl));
     CompletableFuture<String> weather = supplyAsync(() -> getRequestData(weatherUrl));
-	placesNearby.thenCombine(weather, (placesNearbyData, weatherData) -> {
-  	  return String.format("{ \"weather\" : %s, \"placesNearby\": %s }", weatherData, placesNearbyData);
-	}).handle((data, throwable) -> {
-      if (data != null)
-	    return data;
-	  return throwable.getMessage();
-	}).thenAccept(result -> {
-	  long timeTaken = System.currentTimeMillis() - startTime;
-	  System.out.println(String.format("Time Taken %d(ms)", timeTaken));
-	  System.out.println(result);
-	});
+    CompletableFuture<List<String>> results = all(List.of(placesNearby, weather));
+    results.handle((data, throwable) -> {
+      if (data != null) {
+        String placesNearbyData = data.get(0);
+        String weatherData = data.get(1);
+        return String.format("{ \"weather\" : %s, \"placesNearby\": %s }", weatherData, placesNearbyData);
+      }
+      return throwable.getMessage();
+    }).thenAccept(result -> {
+      long timeTaken = System.currentTimeMillis() - startTime;
+      System.out.println(String.format("Time Taken %d(ms)", timeTaken));
+      System.out.println(result);
+    })
+    .join(); // Wait for future to complete, so we get an output here (else not required)
   }
 }
