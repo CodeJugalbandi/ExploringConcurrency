@@ -4,10 +4,10 @@ async function getRequestData(url) {
   return new Promise((resolve, reject) => {
     request.get(url, (error, response, body) => {
       if (error) {
-	    reject(error);
-	  } else {
+        reject(error);
+      } else {
         resolve(body);
-	  }
+      }
     });
   });
 }
@@ -22,7 +22,7 @@ Promise.all([getRequestData(weatherUrl), getRequestData(placesNearbyUrl)])
   .then(([weather, placesNearby]) => `{ "weather": ${weather}, "placesNearby": ${placesNearby} }`)
   .catch(error => `Could not get data => ${error}`)
   .then(result => {
-     console.timeEnd('Time Taken');
-	 console.info(JSON.parse(result));
+    console.timeEnd('Time Taken');
+    console.info(JSON.parse(result));
   });
   

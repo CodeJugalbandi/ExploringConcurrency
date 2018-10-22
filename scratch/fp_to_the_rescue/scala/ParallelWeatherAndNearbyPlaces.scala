@@ -1,6 +1,7 @@
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Try, Failure, Success}
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{Future, Promise, Await}
+import scala.concurrent.duration.{Duration}
 
 def getRequestData(url: String): Future[String] = {
   val p = Promise[String]()
@@ -36,4 +37,4 @@ weatherAndPlacesNearby.onComplete {
   case Failure(ex) => println(ex.getMessage())
 }
 
-Thread.sleep(8000)
+Await.result(weatherAndPlacesNearby, Duration.Inf) // Wait for results, only for this example, not in practice
