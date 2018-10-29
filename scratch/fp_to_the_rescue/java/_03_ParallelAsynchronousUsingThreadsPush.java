@@ -41,7 +41,7 @@ class Result<T> {
   public Throwable error;	
 }
 
-class _05_ParallelAsynchronousUsingThreadsPush {
+class _03_ParallelAsynchronousUsingThreadsPush {
   public static void main(String[] args) throws Exception {
     // URL placesNearbyUrl = new URL ("http://localhost:8000/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km");
     URL placesNearbyUrl = new URL("https://geographic-services.herokuapp.com/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km");
