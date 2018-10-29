@@ -9,6 +9,7 @@
   "author": "Dhaval Dalal",
   "license": "MIT",
   "dependencies": {
-    "request": "^2.88.0"
+    "request": "^2.88.0",
+    "xmlhttprequest": "^1.8.0"
   }
 }

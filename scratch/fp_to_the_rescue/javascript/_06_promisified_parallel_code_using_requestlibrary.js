@@ -1,6 +1,6 @@
 const request = require('request');
 
-async function getRequestData(url) {
+function getRequestData(url) {
   return new Promise((resolve, reject) => {
     request.get(url, (error, response, body) => {
       if (error) {
@@ -17,12 +17,19 @@ const weatherUrl = "https://geographic-services.herokuapp.com/weather?lat=19.01&
 // const placesNearbyUrl = "http://localhost:8000/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km"
 const placesNearbyUrl = "https://geographic-services.herokuapp.com/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km"
 
-console.time('Time Taken');
-Promise.all([getRequestData(weatherUrl), getRequestData(placesNearbyUrl)])
-  .then(([weather, placesNearby]) => `{ "weather": ${weather}, "placesNearby": ${placesNearby} }`)
-  .catch(error => `Could not get data => ${error}`)
-  .then(result => {
-    console.timeEnd('Time Taken');
-    console.info(JSON.parse(result));
-  });
+function weatherAndNearbyPlaces(weatherUrl, placesNearbyUrl) {
+  console.time('Time Taken');
+  return Promise.all([getRequestData(weatherUrl), getRequestData(placesNearbyUrl)])
+    .then(([weather, placesNearby]) => {
+      console.timeEnd('Time Taken');
+      return JSON.parse(`{ "weather": ${weather}, "placesNearby": ${placesNearby} }`)
+    })
+    .catch(error => {
+      console.timeEnd('Time Taken');
+      return JSON.parse(`{ "error": "Request Failed ${error}" }`);
+    });
+}
+
+weatherAndNearbyPlaces(weatherUrl, placesNearbyUrl)
+  .then(result => console.info(result));
   
