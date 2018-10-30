@@ -255,7 +255,6 @@ weatherAndNearbyPlaces(weatherUrl, placesNearbyUrl)
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise, Await}
 import scala.concurrent.duration.{Duration}
-import scala.util.{Try, Success, Failure}
 import scala.async.Async.{async, await}
 
 def getRequestData(url: String): Future[String] = async {
