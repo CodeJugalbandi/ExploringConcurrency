@@ -275,7 +275,7 @@ val timeTaken = System.currentTimeMillis() - startTime
 println(s"Time Taken $timeTaken (ms)")
 ```
 
-**BRAHMA** Now, the structure is quite similar, we simply wrap things in async and await construct and we are still not changing our thought process.  In Scala, we could also have used for-comprehensions, but they are more generic than the async-await.
+**BRAHMA** Now, the structure is quite similar, we simply wrap things in async and await construct and we are still not changing our thought process.  In otherwords, we retain the linear program control flow while being asynchronous.  In Scala, we could also have used for-comprehensions, but they are more generic than the async-await.
 
 TODO: **VISHNU** Lets cross over to Array-Oriented Paradigm, in APL, we too use Futures.
 
