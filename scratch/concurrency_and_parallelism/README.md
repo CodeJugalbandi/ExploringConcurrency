@@ -2,8 +2,12 @@
 
 Concurrency and Parallelism, these two words have been used quite synonomously and have been easily interchanged with the other.  But many, like Phil Wadler, Simon Peyton Jones and Simon Marlow have given very precise distinctions between these.  In this melody, we will delineate concurrency and parallelism using two problems.
 
+## Problem Statement
+
 * _Concurrency_: Creating an Echo TCP-Server
 * _Parallelism_: Splitting a Task (I/O or Computational task)
+
+## CodeJugalbandi
 
 **BRAHMA** Lets tackle Concurrency by looking at this single-threaded Echo TCP-Server in Java.  It waits for connections after creating a ```ServerSocket```.  Once it accepts an incoming socket connection from a client, it goes into an infinite loop, serving that client, by echoing whatever the client sends, except for a ```QUIT``` message.  
 

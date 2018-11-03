@@ -4,12 +4,16 @@ In this melody, we will look at how FP rescues us from the pitfalls by shifting 
 
 Etymologically the structure of concurrent code has been different from the structure of sequential code.  But, we shall see how FP can be leveraged to provide a syntactic layer with async-await using a library or within a language  to make the structure of sequential code and parallel code look similar.
 
-**BRAHMA** We will demonstrate this using problem statement - Given a latitude and longitude of a place, we want to get the following details:
+## Problem Statement
+
+We will demonstrate this using problem statement - Given a latitude and longitude of a place, we want to get the following details:
 
 * Weather information (from a weather end-point).
 * Nearby Places with a radius of 25 Kms (from a places service).
 
-**KRISHNA** The sequential code for this is too simple to write.  Lets pen this in Scala.
+## CodeJugalbandi
+
+**BRAHMA** The sequential code for this is too simple to write.  Lets pen this in Scala.
 
 ```scala
 def getRequestData(url: String): String = io.Source.fromURL(url).mkString.trim
@@ -123,9 +127,9 @@ class Result {
 (shutdown-agents)
 ```
 
-**KRISHNA** So, here there is no explicit synchronization point and threadpool that we manage.  The ```future``` itself is backed by a thread from the threadpool and we simply call ```shutdown-agents``` in the end to close it.  Due to this, the code is deviod of boilerplate, bringing out the essence of domain to the fore, rather than being muddled within boilerplate.  The ```future``` is a higher order function that provides asynchronous computation unit.
+**KRISHNA** So, here there is no explicit synchronization point and threadpool that we manage.  A ```future``` itself is backed by a thread from the threadpool and we simply call ```shutdown-agents``` in the end to close it.  Due to this, the code is deviod of boilerplate, bringing out the essence of domain to the fore, rather than being muddled within the boilerplate.  Also, ```future``` is a higher order function that provides asynchronous computation unit.
 
-**BRAHMA** However, if we look at all this we are still pull based - the ```@``` deref operator.  It would be better if we had Push based, so that we get called when the latent tasks finish, instead of blocking the main thread to gather partial results.  Lets look at JavaScript.
+**BRAHMA** However, if we look at all this we are still pull based - the ```@```  deref operator.  It would be better if we had Push based, so that we get called when the latent tasks finish, instead of blocking the main thread to gather partial results.  Lets look at JavaScript.
 
 ```javascript
 const request = require('request');
@@ -164,7 +168,7 @@ weatherAndNearbyPlaces(weatherUrl, placesNearbyUrl)
   .then(result => console.info(result));
 ```
 
-**BRAHMA** So, here the function ```getRequestData ``` returns a ```Promise```.  It is a Monad for doing asynchronous computation.  If we get a response from the end-point, we fulfill the promise using a ```resolve()``` call, and in case of error we break the promise - a.k.a ```reject()```.  In the function ```weatherAndNearbyPlaces``` we consume the URLs, create promises for each of them and using ```Promise.all``` we combine all the promises and set-up a pipeline of computations that follow.  If all the promises within succeed, the ```then``` gets executed - herein we destructure the result and map it to response JSON.   In case, if either of the promises fail, the ```catch``` in the pipeline is executed and we map it to error JSON.  So, this is Push as the data-flows through the transformation pipeline.
+**BRAHMA** So, here the function ```getRequestData ``` returns a ```Promise```.  It is a Monad for doing asynchronous computation.  If we get a response from the end-point, we fulfill the promise using a ```resolve()``` call, and in case of error we break the promise - a.k.a ```reject()```.  In the function ```weatherAndNearbyPlaces``` we consume the URLs, create promises for each of them and using ```Promise.all``` we combine all the promises. We then set-up a pipeline of computations that follow.  If all the promises within succeed, the ```then``` gets executed - herein we destructure the result and map it to response JSON.   In case, if any of the promises fail, the ```catch``` in the pipeline is executed and we map it to error JSON.  So, this is a push because the data flows through the transformation pipeline.
 
 **KRISHNA** So, far so good.  But we have observed that the structure of the sequential code is quite different from that of the concurrent code.
 
