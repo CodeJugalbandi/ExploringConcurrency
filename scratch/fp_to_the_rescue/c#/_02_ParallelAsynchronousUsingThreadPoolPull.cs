@@ -3,19 +3,42 @@ using System.Threading;
 using System.Net;
 using System.Diagnostics;
 
-struct Results {
-  public string weatherData;
-  public string nearbyPlacesData;
-  public Exception exception;
-}
-
 class _02_ParallelAsynchronousUsingThreadPoolPull
 {  
-  private static void BypassAllCertificates()
-  {
-    ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain,error) => true;
+  public static void Main(string[] args) {
+    string host  = "https://geographic-services.herokuapp.com";
+    // string host  = "https://localhost:8000";
+    string nearbyPath = "/places/nearby", weatherPath = "/weather";
+    string lat = "lat=19.01", lon = "lon=72.8", radius = "radius=25", units = "unit=km";
+    
+    string placesNearbyUrl = $"{host}{nearbyPath}?{lat}&{lon}&{radius}&{units}";
+    string weatherUrl = $"{host}{weatherPath}?{lat}&{lon}";
+    using (var latch = new CountdownEvent(2)) {
+      var sw = Stopwatch.StartNew();
+      var placesNearbyResult = MakeRequest(placesNearbyUrl, latch);
+      var weatherResult = MakeRequest(weatherUrl, latch);
+      // Wait for both tasks to complete
+      latch.Wait();  
+      sw.Stop();
+      Console.WriteLine($"Got Results in {sw.Elapsed.TotalMilliseconds}(ms)");
+      Console.WriteLine($"{{ \"weather\" : {weatherResult.data}, \"placesNearby\" : {placesNearbyResult.data} }}");
+      Console.WriteLine($"{{ \"error\" : \"{weatherResult.exception}{placesNearbyResult.exception}\" }}");
+    };
   }
-
+  
+  static Result MakeRequest(string url, CountdownEvent latch) {
+    var result = new Result();
+    ThreadPool.QueueUserWorkItem(_ => {
+      try {
+        result.data = Send((string)url);
+      } catch (Exception e) {
+        result.exception = e;  
+      }
+      latch.Signal();    
+    });
+    return result;
+  }
+  
   private static string Send(string url) {
     using (WebClient wc = new WebClient())
     {
@@ -24,39 +47,13 @@ class _02_ParallelAsynchronousUsingThreadPoolPull
     }
   }
   
-  public static void Main(string[] args) {
-    // string placesNearbyUrl = "http://localhost:8000/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km";
-    string placesNearbyUrl = "https://geographic-services.herokuapp.com/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km";
-    // string weatherUrl = "http://localhost:8000/weather?lat=19.01&lon=72.8";
-    string weatherUrl = "https://geographic-services.herokuapp.com/weather?lat=19.01&lon=72.8";
-
-    using (var latch = new CountdownEvent(2)) {
-      var results = new Results();
-      var sw = Stopwatch.StartNew();
-      ThreadPool.QueueUserWorkItem(url => {
-        try {
-          results.nearbyPlacesData = Send((string)url);
-        } catch (Exception e) {
-          results.exception = e;  
-        }
-        latch.Signal();
-      }, placesNearbyUrl);
-      
-      ThreadPool.QueueUserWorkItem(url => {
-        try {
-          results.weatherData = Send((string)url);
-        } catch (Exception e) {
-          results.exception = e;  
-        }
-        latch.Signal();
-      }, weatherUrl);
-      // Wait for both tasks to complete
-      latch.Wait();  
-      sw.Stop();
-      Console.WriteLine($"Got Results in {sw.Elapsed.TotalMilliseconds}(ms)");
-      // Thread.Sleep(TimeSpan.FromSeconds(1));
-      Console.WriteLine($"{{ \"weather\" : {results.weatherData}, \"placesNearby\" :  {results.nearbyPlacesData} }}");
-      Console.WriteLine($"Exception = {results.exception}");
-    };
+  private static void BypassAllCertificates()
+  {
+    ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain,error) => true;
   }
+}
+
+class Result {
+  public string data;
+  public Exception exception;
 }

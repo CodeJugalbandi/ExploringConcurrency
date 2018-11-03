@@ -2,4 +2,6 @@
 .DS_Store
 **/*/bin
 **/*/*.class
+**/*/*.exe
+**/*/mono_crash.*.json
 **/*/package-lock.json

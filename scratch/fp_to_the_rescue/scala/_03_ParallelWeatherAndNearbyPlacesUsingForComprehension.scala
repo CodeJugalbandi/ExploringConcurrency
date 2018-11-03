@@ -15,10 +15,13 @@ def getRequestData(url: String): Future[String] = {
   p.future	
 } 
 
-// val placesNearbyUrl = "http://localhost:8000/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km"
-val placesNearbyUrl = "https://geographic-services.herokuapp.com/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km"
-// val weatherUrl = "http://localhost:8000/weather?lat=19.01&lon=72.8"
-val weatherUrl = "https://geographic-services.herokuapp.com/weather?lat=19.01&lon=72.8"
+val host = "https://geographic-services.herokuapp.com";
+// val host = "https://localhost:8000";
+val nearbyPath = "/places/nearby"; val weatherPath = "/weather";
+val lat = "lat=19.01"; val lon = "lon=72.8"; val radius = "radius=25"; val units = "unit=km";
+
+val placesNearbyUrl = s"$host$nearbyPath?$lat&$lon&$radius&$units";
+val weatherUrl = s"$host$weatherPath?$lat&$lon";
 
 val startTime = System.currentTimeMillis()
 val placesNearbyFuture = getRequestData(placesNearbyUrl)

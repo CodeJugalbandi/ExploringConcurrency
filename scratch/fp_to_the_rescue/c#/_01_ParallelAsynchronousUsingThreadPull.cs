@@ -3,6 +3,40 @@ using System.Threading;
 using System.Net;
 using System.Diagnostics;
 
+class _01_ParallelAsynchronousUsingThreadPull {
+  
+  static Thread MakeRequestThread() {
+    return new Thread(request => ((Request)request).Send());
+  }
+
+  public static void Main(string[] args) {
+    string host  = "https://geographic-services.herokuapp.com";
+    // string host  = "https://localhost:8000";
+    string nearbyPath = "/places/nearby", weatherPath = "/weather";
+    string lat = "lat=19.01", lon = "lon=72.8", radius = "radius=25", units = "unit=km";
+    
+    string placesNearbyUrl = $"{host}{nearbyPath}?{lat}&{lon}&{radius}&{units}";
+    string weatherUrl = $"{host}{weatherPath}?{lat}&{lon}";
+    Request placesNearby = new Request(placesNearbyUrl);
+    Request weather = new Request(weatherUrl);
+    var placesNearbyRequestThread = MakeRequestThread();
+    var weatherRequestThread = MakeRequestThread();	  
+    var sw = new Stopwatch();
+    sw.Start();
+    placesNearbyRequestThread.Start(placesNearby);
+    weatherRequestThread.Start(weather);
+    // explicit synchronization points
+    placesNearbyRequestThread.Join();
+    weatherRequestThread.Join();
+    sw.Stop();
+    string placesNearbyData = placesNearby.Get();
+    string weatherData = weather.Get();
+    string weatherAndPlacesNearby = $"{{ \"weather\" : {weatherData}, \"placesNearby\": {placesNearbyData} }}";
+    Console.WriteLine($"Time Taken {sw.Elapsed.TotalMilliseconds}(ms)");
+    Console.WriteLine(weatherAndPlacesNearby);
+  }
+}
+
 class Request
 {
   private string data;
@@ -35,36 +69,5 @@ class Request
     if (exception == null)
       return data;
     throw exception;
-  }
-}
-
-class _01_ParallelAsynchronousUsingThreadPull {
-  
-  static Thread CreateRequestThread() {
-    return new Thread(request => ((Request)request).Send());
-  }
-
-  public static void Main(string[] args) {
-    // string placesNearbyUrl = "http://localhost:8000/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km";
-    string placesNearbyUrl = "https://geographic-services.herokuapp.com/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km";
-    // string weatherUrl = "http://localhost:8000/weather?lat=19.01&lon=72.8";
-    string weatherUrl = "https://geographic-services.herokuapp.com/weather?lat=19.01&lon=72.8";
-    Request placesNearbyRequest = new Request(placesNearbyUrl);
-    Request weatherRequest = new Request(weatherUrl);
-    var placesNearbyThread = CreateRequestThread();
-    var weatherThread = CreateRequestThread();	  
-    var sw = new Stopwatch();
-    sw.Start();
-    placesNearbyThread.Start(placesNearbyRequest);
-    weatherThread.Start(weatherRequest);
-    // explicit synchronization points
-    placesNearbyThread.Join();
-    weatherThread.Join();
-    sw.Stop();
-    string placesNearbyData = placesNearbyRequest.Get();
-    string weatherData = weatherRequest.Get();
-    string weatherAndPlacesNearby = $"{{ \"weather\" : {weatherData}, \"placesNearby\": {placesNearbyData} }}";
-    Console.WriteLine($"Time Taken {sw.Elapsed.TotalMilliseconds}(ms)");
-    Console.WriteLine(weatherAndPlacesNearby);
   }
 }

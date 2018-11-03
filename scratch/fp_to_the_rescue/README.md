@@ -14,115 +14,60 @@ Also, etymologically the structure of concurrent code has been different from th
 ```scala
 def getRequestData(url: String): String = io.Source.fromURL(url).mkString.trim
 
-val placesNearbyUrl = s"https://geographic-services.herokuapp.com/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km"
-val weatherUrl = s"https://geographic-services.herokuapp.com/weather?lat=19.01&lon=72.8"
+val host = "https://geographic-services.herokuapp.com";
+// val host = "https://localhost:8000";
+val nearbyPath = "/places/nearby"; val weatherPath = "/weather";
+val lat = "lat=19.01"; val lon = "lon=72.8"; val radius = "radius=25"; val units = "unit=km";
 
-val startTime = System.currentTimeMillis()
+val placesNearbyUrl = s"$host$nearbyPath?$lat&$lon&$radius&$units";
+val weatherUrl = s"$host$weatherPath?$lat&$lon";
 val placesNearbyData = getRequestData(placesNearbyUrl)
 val weatherData = getRequestData(weatherUrl)
-val timeTaken = System.currentTimeMillis() - startTime
 val weatherAndPlacesNearby = s"""{ "weather" : $weatherData, "placesNearby": $placesNearbyData }"""
-println(s"Time Taken $timeTaken (ms)")							 
 println(weatherAndPlacesNearby)
 ```
 
-**BRAHMA** We can make this parallel and speed-up the execution.  Lets use  thread primitives to begin with.  We need to spawn two threads, wait for each of them to finish and then gather the partial results to get complete results.  Lets see this in C#
+**BRAHMA** We can make this parallel and speed-up the execution.  Lets see this in action using Threads from Threadpool in C#.
 
 ```csharp
 using System;
 using System.Threading;
 using System.Net;
-using System.Diagnostics;
 
-class ParallelAsynchronousUsingThread 
-{
-  static Thread CreateRequestThread() 
-  {
-    return new Thread(request => ((Request)request).Send());
-  }
-
-  public static void Main(string[] args) 
-  {
-    string placesNearbyUrl = "https://geographic-services.herokuapp.com/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km";
-    string weatherUrl = "https://geographic-services.herokuapp.com/weather?lat=19.01&lon=72.8";
-    Request placesNearbyRequest = new Request(placesNearbyUrl);
-    Request weatherRequest = new Request(weatherUrl);
-    var placesNearbyThread = CreateRequestThread();
-    var weatherThread = CreateRequestThread();
-    	  
-    var sw = new Stopwatch();
-    sw.Start();
-    placesNearbyThread.Start(placesNearbyRequest);
-    weatherThread.Start(weatherRequest);
-    // explicit synchronization points
-    placesNearbyThread.Join();
-    weatherThread.Join();
-    sw.Stop();
-
-    string placesNearbyData = placesNearbyRequest.Get();
-    string weatherData = weatherRequest.Get();
-    string weatherAndPlacesNearby = $"{{ \"weather\" : {weatherData}, \"placesNearby\": {placesNearbyData} }}";
-    Console.WriteLine($"Time Taken {sw.Elapsed.TotalMilliseconds}(ms)");
-    Console.WriteLine(weatherAndPlacesNearby);
-  }
-}
-
-class Request
-{
-  private string data;
-  private Exception exception;
-  private readonly string url;
-
-  public Request(string url)
-  {
-    this.url = url;
-  }
-
-  private void BypassAllCertificates()
-  {
-    ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain,error) => true;
-  }
-
-  public void Send() {
-    try {
-      using (WebClient wc = new WebClient())
-      {
-        BypassAllCertificates();
-        data = wc.DownloadString(url);
-      }
-    } catch(Exception e) {
-      this.exception = e;
-    }
-  }
-
-  public String Get() {
-    if (exception == null)
-      return data;
-    throw exception;
-  }
-}
-```
-**BRAHMA** But we know that threads are a scarce resource and they cannot be re-used.  So, creating ad-hoc threads like this is not advisable.  So, we use ThreadPool to re-use threads, put it back into the pool after they are used for a task and thus help with thread management.
-
-```csharp
-using System;
-using System.Threading;
-using System.Net;
-using System.Diagnostics;
-
-struct Results {
-  public string weatherData;
-  public string nearbyPlacesData;
-  public Exception exception;
-}
-
-class ParallelAsynchronousUsingThreadPool
+class ParallelUsingThreadPoolPull
 {  
-  private static void BypassAllCertificates()
-  {
-    ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain,error) => true;
-  }
+  public static void Main(string[] args) {
+    string host  = "https://geographic-services.herokuapp.com";
+    // string host  = "https://localhost:8000";
+    string nearbyPath = "/places/nearby", weatherPath = "/weather";
+    string lat = "lat=19.01", lon = "lon=72.8", radius = "radius=25", units = "unit=km";
+    
+    string placesNearbyUrl = $"{host}{nearbyPath}?{lat}&{lon}&{radius}&{units}";
+    string weatherUrl = $"{host}{weatherPath}?{lat}&{lon}";
+    using (var latch = new CountdownEvent(2)) {
+      var placesNearbyResult = MakeRequest(placesNearbyUrl, latch);
+      var weatherResult = MakeRequest(weatherUrl, latch);
+      // Wait for both tasks to complete
+      latch.Wait();  
 
+      Console.WriteLine($"{{ \"weather\" : {weatherResult.data}, \"placesNearby\" : {placesNearbyResult.data} }}");
+      Console.WriteLine($"{{ \"error\" : \"{weatherResult.exception}{placesNearbyResult.exception}\" }}");
+    };
+  }
+  
+  static Result MakeRequest(string url, CountdownEvent latch) {
+    var result = new Result();
+    ThreadPool.QueueUserWorkItem(_ => {
+      try {
+        result.data = Send((string)url);
+      } catch (Exception e) {
+        result.exception = e;  
+      }
+      latch.Signal();    
+    });
+    return result;
+  }
+  
   private static string Send(string url) {
     using (WebClient wc = new WebClient())
     {
@@ -131,43 +76,19 @@ class ParallelAsynchronousUsingThreadPool
     }
   }
   
-  public static void Main(string[] args) {
-    string placesNearbyUrl = "https://geographic-services.herokuapp.com/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km";
-    string weatherUrl = "https://geographic-services.herokuapp.com/weather?lat=19.01&lon=72.8";
-
-    using (var latch = new CountdownEvent(2)) {
-      var results = new Results();
-      var sw = Stopwatch.StartNew();
-      ThreadPool.QueueUserWorkItem(url => {
-        try {
-          results.nearbyPlacesData = Send((string)url);
-        } catch (Exception e) {
-          results.exception = e;  
-        }
-        latch.Signal();
-      }, placesNearbyUrl);
-      
-      ThreadPool.QueueUserWorkItem(url => {
-        try {
-          results.weatherData = Send((string)url);
-        } catch (Exception e) {
-          results.exception = e;  
-        }
-        latch.Signal();
-      }, weatherUrl);
-      // Wait for both tasks to complete
-      latch.Wait();  
-      sw.Stop();
-      
-      Console.WriteLine($"Got Results in {sw.Elapsed.TotalMilliseconds}(ms)");
-      Console.WriteLine($"{{ \"weather\" : {results.weatherData}, \"placesNearby\" :  {results.nearbyPlacesData} }}");
-      Console.WriteLine($"Exception = {results.exception}");
-    };
+  private static void BypassAllCertificates()
+  {
+    ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain,error) => true;
   }
+}
+
+class Result {
+  public string data;
+  public Exception exception;
 }
 ```
 
-**KRISHNA** Again, if you look the code it to verbose and we have to manage the synchronization point, in this case using a ```CountdownEvent```.  A slight improvement over the earlier one.  Further we also deal with  ```Threadpool``` to queue the task.  Let me show you Clojure, where all this boiler-plate is shoved under an abstraction ```future``` that deals with all of this.
+**KRISHNA** Again, if you look the code it is too verbose and we have to manage the synchronization point, in this case using a ```CountdownEvent```.  A slight improvement over the earlier one.  Further we also deal with  ```Threadpool``` to queue the task.  Let me show you Clojure, where all this boiler-plate is shoved under an abstraction ```future``` that deals with all of this.
 
 ```clojure
 (ns weather-and-places)
@@ -203,9 +124,9 @@ class ParallelAsynchronousUsingThreadPool
 (shutdown-agents)
 ```
 
-**KRISHNA** So, here there is no explicit synchronization point and threadpool that we manage.  The ```future``` itself is backed by a thread from the threadpool and we simply call ```shutdown-agents``` in the end to close it.  Due to this, the code is deviod of boilerplate, bringing out the essence of domain to the fore, than being muddled within boilerplate.  The ```future``` is a higher order function that provides asynchronous computation unit.
+**KRISHNA** So, here there is no explicit synchronization point and threadpool that we manage.  The ```future``` itself is backed by a thread from the threadpool and we simply call ```shutdown-agents``` in the end to close it.  Due to this, the code is deviod of boilerplate, bringing out the essence of domain to the fore, rather than being muddled within boilerplate.  The ```future``` is a higher order function that provides asynchronous computation unit.
 
-**BRAHMA** However, if we look all this we are still pull based - the @ deref operator.  It would be better if we had Push based, so that we get called when the latent tasks finish, instead of blocking the main thread to gather partial results.  Lets look at JavaScript.
+**BRAHMA** However, if we look at all this we are still pull based - the ```@``` deref operator.  It would be better if we had Push based, so that we get called when the latent tasks finish, instead of blocking the main thread to gather partial results.  Lets look at JavaScript.
 
 ```javascript
 const request = require('request');
@@ -223,53 +144,58 @@ function getRequestData(url) {
 }
 
 function weatherAndNearbyPlaces(weatherUrl, placesNearbyUrl) {
-  console.time('Time Taken');
   return Promise.all([getRequestData(weatherUrl), getRequestData(placesNearbyUrl)])
-    .then(([weather, placesNearby]) => {
-      console.timeEnd('Time Taken');
+    .then(([weather, placesNearby]) => 
       return JSON.parse(`{ "weather": ${weather}, "placesNearby": ${placesNearby} }`)
-    })
+    )
     .catch(error => {
-      console.timeEnd('Time Taken');
       return JSON.parse(`{ "error": "Request Failed ${error}" }`);
     });
 }
 
-const weatherUrl = "https://geographic-services.herokuapp.com/weather?lat=19.01&lon=72.8"
-const placesNearbyUrl = "https://geographic-services.herokuapp.com/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km"
+const host = "https://geographic-services.herokuapp.com";
+// const host = "https://localhost:8000";
+const nearbyPath = "/places/nearby", weatherPath = "/weather";
+const lat = "lat=19.01", lon = "lon=72.8", radius = "radius=25", units = "unit=km";
+
+const placesNearbyUrl = `${host}${nearbyPath}?${lat}&${lon}&${radius}&${units}`;
+const weatherUrl = `${host}${weatherPath}?${lat}&${lon}`;
 
 weatherAndNearbyPlaces(weatherUrl, placesNearbyUrl)
   .then(result => console.info(result));
 ```
 
-**BRAHMA** So, here the function ```getRequestData ``` returns a ```Promise```.  It is a Monad for doing asynchronous computation.  If we get a response from the end-point, we fulfill the promise using a ```resolve()``` call, and in case of error we break the promise - a.k.a ```reject()```.  In the function ```weatherAndNearbyPlaces``` we consume the URLs, create promises for each of them and using ```Promise.all``` we combine all the promises and set-up a pipeline of computations that follow.  If all the promises within succeed, the ```then``` gets executed - herein we destructure the result and map it to response JSON.   In case, if either of the promises fails, the ```catch``` in the pipeline is executed and we map it to error JSON.  So, this is Push and the data-flows through the transformation pipeline.
+**BRAHMA** So, here the function ```getRequestData ``` returns a ```Promise```.  It is a Monad for doing asynchronous computation.  If we get a response from the end-point, we fulfill the promise using a ```resolve()``` call, and in case of error we break the promise - a.k.a ```reject()```.  In the function ```weatherAndNearbyPlaces``` we consume the URLs, create promises for each of them and using ```Promise.all``` we combine all the promises and set-up a pipeline of computations that follow.  If all the promises within succeed, the ```then``` gets executed - herein we destructure the result and map it to response JSON.   In case, if either of the promises fail, the ```catch``` in the pipeline is executed and we map it to error JSON.  So, this is Push as the data-flows through the transformation pipeline.
 
 **KRISHNA** So, far so good.  But we have observed that the structure of the sequential code is quite different from that of the concurrent code.
 
-**BRAHMA** Yes indeed, but languages like JavaScript/C#, the language has evolved syntactic layer with async-await constructs which underneath use these abstractions.  In Scala too, we have the async library that does that job.  Since we've looked at the earlier sequential example in Scala, lets see it in that.
+**BRAHMA** Yes indeed, and so languages like JavaScript/C#, has evolved syntactic layer with async-await constructs which underneath that use these abstractions.  In Scala too, we have the async library that does that job.  Since we've looked at the earlier sequential example in Scala, lets see it in that.
 
 ```scala
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future, Promise, Await}
-import scala.concurrent.duration.{Duration}
-import scala.async.Async.{async, await}
-
 def getRequestData(url: String): Future[String] = async {
   io.Source.fromURL(url).mkString.trim
 } 
 
-val placesNearbyUrl = "https://geographic-services.herokuapp.com/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km"
-val weatherUrl = "https://geographic-services.herokuapp.com/weather?lat=19.01&lon=72.8"
+val host = "https://geographic-services.herokuapp.com";
+// val host = "https://localhost:8000";
+val nearbyPath = "/places/nearby"; val weatherPath = "/weather";
+val lat = "lat=19.01"; val lon = "lon=72.8"; val radius = "radius=25"; val units = "unit=km";
 
-val startTime = System.currentTimeMillis()
+val placesNearbyUrl = s"$host$nearbyPath?$lat&$lon&$radius&$units";
+val weatherUrl = s"$host$weatherPath?$lat&$lon";
+
 val weatherAndPlacesNearby = async {
   val weatherFuture = getRequestData(weatherUrl)
   val placesNearbyFuture = getRequestData(placesNearbyUrl)
   s"""{ "weather" : ${await(weatherFuture)}, "placesNearby" : ${await(placesNearbyFuture)} }"""
 }
-println(Await.result(weatherAndPlacesNearby, Duration.Inf))
-val timeTaken = System.currentTimeMillis() - startTime
-println(s"Time Taken $timeTaken (ms)")
+
+weatherAndPlacesNearby.onComplete {
+  case Success(data) => println(data)
+  case Failure(e) => println(e.getMessage)
+}
+
+Await.result(weatherAndPlacesNearby, Duration.Inf) // Wait for results, only for this example for onComplete to get called, not in practice
 ```
 
 **BRAHMA** Now, the structure is quite similar, we simply wrap things in async and await construct and we are still not changing our thought process.  In otherwords, we retain the linear program control flow while being asynchronous.  In Scala, we could also have used for-comprehensions, but they are more generic than the async-await.

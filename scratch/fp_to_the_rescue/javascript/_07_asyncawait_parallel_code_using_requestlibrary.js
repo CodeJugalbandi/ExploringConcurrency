@@ -29,11 +29,14 @@ async function weatherAndNearbyPlaces(weatherUrl, placesNearbyUrl) {
   }
 }
 
-// const weatherUrl = "http://localhost:8000/weather?lat=19.01&lon=72.8"
-const weatherUrl = "https://geographic-services.herokuapp.com/weather?lat=19.01&lon=72.8";
-// const placesNearbyUrl = "http://localhost:8000/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km"
-const placesNearbyUrl = "https://geographic-services.herokuapp.com/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km";
+const host = "https://geographic-services.herokuapp.com";
+// const host = "https://localhost:8000";
+const nearbyPath = "/places/nearby";
+const weatherPath = "/weather";
+const lat = "lat=19.01", lon = "lon=72.8", radius = "radius=25", units = "unit=km";
 
+const placesNearbyUrl = `${host}${nearbyPath}?${lat}&${lon}&${radius}&${units}`;
+const weatherUrl = `${host}${weatherPath}?${lat}&${lon}`;
 
 weatherAndNearbyPlaces(weatherUrl, placesNearbyUrl)
  .then(result => console.info(result));
