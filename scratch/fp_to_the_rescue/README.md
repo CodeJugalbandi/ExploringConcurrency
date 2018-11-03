@@ -14,7 +14,6 @@ Also, etymologically the structure of concurrent code has been different from th
 ```scala
 def getRequestData(url: String): String = io.Source.fromURL(url).mkString.trim
 
-lat=19.01&lon=72.8&radius=25&unit=km"
 val placesNearbyUrl = s"https://geographic-services.herokuapp.com/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km"
 val weatherUrl = s"https://geographic-services.herokuapp.com/weather?lat=19.01&lon=72.8"
 
@@ -34,6 +33,39 @@ using System;
 using System.Threading;
 using System.Net;
 using System.Diagnostics;
+
+class ParallelAsynchronousUsingThread 
+{
+  static Thread CreateRequestThread() 
+  {
+    return new Thread(request => ((Request)request).Send());
+  }
+
+  public static void Main(string[] args) 
+  {
+    string placesNearbyUrl = "https://geographic-services.herokuapp.com/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km";
+    string weatherUrl = "https://geographic-services.herokuapp.com/weather?lat=19.01&lon=72.8";
+    Request placesNearbyRequest = new Request(placesNearbyUrl);
+    Request weatherRequest = new Request(weatherUrl);
+    var placesNearbyThread = CreateRequestThread();
+    var weatherThread = CreateRequestThread();
+    	  
+    var sw = new Stopwatch();
+    sw.Start();
+    placesNearbyThread.Start(placesNearbyRequest);
+    weatherThread.Start(weatherRequest);
+    // explicit synchronization points
+    placesNearbyThread.Join();
+    weatherThread.Join();
+    sw.Stop();
+
+    string placesNearbyData = placesNearbyRequest.Get();
+    string weatherData = weatherRequest.Get();
+    string weatherAndPlacesNearby = $"{{ \"weather\" : {weatherData}, \"placesNearby\": {placesNearbyData} }}";
+    Console.WriteLine($"Time Taken {sw.Elapsed.TotalMilliseconds}(ms)");
+    Console.WriteLine(weatherAndPlacesNearby);
+  }
+}
 
 class Request
 {
@@ -69,41 +101,6 @@ class Request
     throw exception;
   }
 }
-
-class ParallelAsynchronousUsingThread 
-{
-  
-  static Thread CreateRequestThread() 
-  {
-    return new Thread(request => ((Request)request).Send());
-  }
-
-  public static void Main(string[] args) 
-  {
-    string placesNearbyUrl = "https://geographic-services.herokuapp.com/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km";
-    string weatherUrl = "https://geographic-services.herokuapp.com/weather?lat=19.01&lon=72.8";
-    Request placesNearbyRequest = new Request(placesNearbyUrl);
-    Request weatherRequest = new Request(weatherUrl);
-    var placesNearbyThread = CreateRequestThread();
-    var weatherThread = CreateRequestThread();
-    	  
-    var sw = new Stopwatch();
-    sw.Start();
-    placesNearbyThread.Start(placesNearbyRequest);
-    weatherThread.Start(weatherRequest);
-    // explicit synchronization points
-    placesNearbyThread.Join();
-    weatherThread.Join();
-    sw.Stop();
-
-    string placesNearbyData = placesNearbyRequest.Get();
-    string weatherData = weatherRequest.Get();
-    string weatherAndPlacesNearby = $"{{ \"weather\" : {weatherData}, \"placesNearby\": {placesNearbyData} }}";
-    Console.WriteLine($"Time Taken {sw.Elapsed.TotalMilliseconds}(ms)");
-    Console.WriteLine(weatherAndPlacesNearby);
-  }
-}
-
 ```
 **BRAHMA** But we know that threads are a scarce resource and they cannot be re-used.  So, creating ad-hoc threads like this is not advisable.  So, we use ThreadPool to re-use threads, put it back into the pool after they are used for a task and thus help with thread management.
 
