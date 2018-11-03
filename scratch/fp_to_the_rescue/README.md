@@ -1,6 +1,6 @@
 # Functional Programming to the Rescue
 
-In this melody, we will look at how FP rescues us from the pitfalls by shifting our focus on to the "what" than on to the "how".  We will contrast how it simplifies the approach to concurrency and parallelism by raising the level of abstraction to a point where the shift in focus on the code is achieved at a conceptual domain level, rather than worrying about the associated plumbing (and boiler-plate) to get there.  
+In this melody, we will look at how FP rescues us from the pitfalls by shifting our focus on to the "what" than on to the "how".  We will contrast on how it simplifies the approach to concurrency and parallelism by raising the level of abstraction to a point where the shift in focus is achieved at a conceptual domain level, rather than worrying about the associated plumbing (and boiler-plate) code to get there.  
 
 Etymologically the structure of concurrent code has been different from the structure of sequential code.  But, we shall see how FP can be leveraged to provide a syntactic layer with async-await using a library or within a language  to make the structure of sequential code and parallel code look similar.
 
@@ -27,7 +27,7 @@ val weatherAndPlacesNearby = s"""{ "weather" : $weatherData, "placesNearby": $pl
 println(weatherAndPlacesNearby)
 ```
 
-**BRAHMA** We can make this parallel and speed-up the execution.  Lets see this in action using Threads from Threadpool in C#.
+**BRAHMA** We can make this parallel and speed-up the execution.  Lets see this in action by using Threads from Threadpool in C#.
 
 ```csharp
 using System;
@@ -88,7 +88,7 @@ class Result {
 }
 ```
 
-**KRISHNA** Again, if you look the code it is too verbose and we have to manage the synchronization point, in this case using a ```CountdownEvent```.  A slight improvement over the earlier one.  Further we also deal with  ```Threadpool``` to queue the task.  Let me show you Clojure, where all this boiler-plate is shoved under an abstraction ```future``` that deals with all of this.
+**KRISHNA** Again, if you look the code it is too verbose and we have to manage the synchronization point, in this case using a ```CountdownEvent```. Further we also deal with  ```Threadpool``` to queue the task.  Let me show you Clojure, where all this boiler-plate is shoved under an abstraction ```future``` that deals with all of this.
 
 ```clojure
 (ns weather-and-places)
@@ -115,11 +115,10 @@ class Result {
 (def radius 25)
 (def units "km")
 
-(time
-      (let [weather (future (slurp (weather-url test-lat test-lon)))
-            places (future (slurp (nearby-url test-lat test-lon radius units)))]
+(let [weather (future (slurp (weather-url test-lat test-lon)))
+      places (future (slurp (nearby-url test-lat test-lon radius units)))]
 
-       (print-info @weather @places)))
+  (print-info @weather @places))
 
 (shutdown-agents)
 ```
@@ -169,7 +168,7 @@ weatherAndNearbyPlaces(weatherUrl, placesNearbyUrl)
 
 **KRISHNA** So, far so good.  But we have observed that the structure of the sequential code is quite different from that of the concurrent code.
 
-**BRAHMA** Yes indeed, and so languages like JavaScript/C#, has evolved syntactic layer with async-await constructs which underneath that use these abstractions.  In Scala too, we have the async library that does that job.  Since we've looked at the earlier sequential example in Scala, lets see it in that.
+**BRAHMA** Yes indeed, and so languages like JavaScript/C# have evolved a syntactic layer with async-await constructs.  These under the hood use these abstractions.  In Scala too, we have the async library that does that job.  Since we've looked at the earlier sequential example in Scala, lets see it in that.
 
 ```scala
 def getRequestData(url: String): Future[String] = async {
@@ -200,7 +199,7 @@ Await.result(weatherAndPlacesNearby, Duration.Inf) // Wait for results, only for
 
 **BRAHMA** Now, the structure is quite similar, we simply wrap things in async and await construct and we are still not changing our thought process.  In otherwords, we retain the linear program control flow while being asynchronous.  In Scala specifically, we could also have used for-comprehensions, but they are more generic than the async-await.
 
-TODO: **VISHNU** Lets cross over to Array-Oriented Paradigm, in APL, we too use Futures.
+TODO: **VISHNU** Lets cross over to Array-Oriented Paradigm, in APL, we too use Futures and Isolates.
 
 ## Reflections
 
