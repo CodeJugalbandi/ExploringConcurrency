@@ -2,7 +2,7 @@
 
 In this melody, we will look at how FP rescues us from the pitfalls by shifting our focus on to the "what" than on to the "how".  We will contrast how it simplifies the approach to concurrency and parallelism by raising the level of abstraction to a point where the shift in focus on the code is achieved at a conceptual domain level, rather than worrying about the associated plumbing (and boiler-plate) to get there.  
 
-Also, etymologically the structure of concurrent code has been different from the structure of sequential code.  But, we shall see how FP can be leveraged to provide a syntactic layer with async-await using a library or within a language  to make the structure of sequential code and parallel code look similar.
+Etymologically the structure of concurrent code has been different from the structure of sequential code.  But, we shall see how FP can be leveraged to provide a syntactic layer with async-await using a library or within a language  to make the structure of sequential code and parallel code look similar.
 
 **BRAHMA** We will demonstrate this using problem statement - Given a latitude and longitude of a place, we want to get the following details:
 
@@ -198,7 +198,7 @@ weatherAndPlacesNearby.onComplete {
 Await.result(weatherAndPlacesNearby, Duration.Inf) // Wait for results, only for this example for onComplete to get called, not in practice
 ```
 
-**BRAHMA** Now, the structure is quite similar, we simply wrap things in async and await construct and we are still not changing our thought process.  In otherwords, we retain the linear program control flow while being asynchronous.  In Scala, we could also have used for-comprehensions, but they are more generic than the async-await.
+**BRAHMA** Now, the structure is quite similar, we simply wrap things in async and await construct and we are still not changing our thought process.  In otherwords, we retain the linear program control flow while being asynchronous.  In Scala specifically, we could also have used for-comprehensions, but they are more generic than the async-await.
 
 TODO: **VISHNU** Lets cross over to Array-Oriented Paradigm, in APL, we too use Futures.
 
