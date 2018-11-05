@@ -2,13 +2,15 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.json.JSONObject;
+import rx.Observable;
+import rx.schedulers.Schedulers;
 
 public class RealTimeNationalStockService {
 
@@ -47,6 +49,34 @@ public class RealTimeNationalStockService {
       }
     }
   }
+  
+  public Observable<String> asObservable() {
+    return asObservable("");
+  }
+	
+  public Observable<String> asObservable(String ticker) {
+    System.out.println("RealTimeNationalStockServiceObservable.asObservable(...): Ready...");
+    return Observable.<String>unsafeCreate(subscriber -> {
+      String clientId = "";
+      try {
+        clientId = subscribeTo(ticker, 
+          message -> subscriber.onNext(message), 
+          error -> subscriber.onError(error), 
+          (code, reason) -> subscriber.onCompleted());
+          while (!subscriber.isUnsubscribed());
+          subscriber.onCompleted();
+      } catch (MalformedURLException | URISyntaxException e) {
+        subscriber.onError(e);
+      } finally {
+        if (!clientId.isEmpty()) {
+          unsubscribe(clientId);
+          close(clientId);
+          System.out.println("RealTimeNationalStockServiceObservable : Closed Subscription");
+        }
+      }
+    })
+    .subscribeOn(Schedulers.io());
+  }
 
   private static class SubscriberSocket extends WebSocketClient {
     private Consumer<String> onMessage;
@@ -84,7 +114,7 @@ public class RealTimeNationalStockService {
     }
   }
 
-  public static void main(String[] args) throws URISyntaxException, MalformedURLException {
+  public static void main(String[] args) throws Exception {
     RealTimeNationalStockService stockService = new RealTimeNationalStockService();
     String clientId = stockService.subscribeTo("GOOG", 
         message -> System.out.println(message), 
@@ -99,5 +129,18 @@ public class RealTimeNationalStockService {
 
     stockService.unsubscribe(clientId);
     stockService.close(clientId);
+	
+    System.out.println(">> Press any key to terminate.... <<");
+    stockService.asObservable()
+    // stockService.asObservable("AMZN")
+      .doOnNext(System.out::println)
+      .map(message -> new JSONObject(message))
+      .filter(json -> json.has("ticker"))
+      .map(tick -> Arrays.asList(tick.getString("ticker"), tick.getDouble("price")))
+      .subscribe(ticker -> System.out.println("Next => " + ticker + " on " + Thread.currentThread()), 
+        error -> System.out.println("Error => " + error + " on " + Thread.currentThread()),
+        () -> System.out.println("DONE on " + Thread.currentThread()));
+	  
+    System.in.read();
   }
 }
