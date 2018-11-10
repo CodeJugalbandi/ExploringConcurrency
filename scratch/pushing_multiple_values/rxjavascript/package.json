@@ -1,0 +1,15 @@
+{
+  "name": "rxjavascript",
+  "version": "1.0.0",
+  "description": "",
+  "main": "websocket-client.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Dhaval",
+  "license": "ISC",
+  "dependencies": {
+    "rxjs": "^6.3.3",
+    "websocket": "^1.0.28"
+  }
+}
