@@ -10,7 +10,6 @@ function connectTo(websocketUrl) {
 		ws.onopen = function(openMessage) {
 		  console.log(`websocket is connected...${openMessage}`)
 		  // sending a send event to websocket server
-		  ws.send('client ready for communication...');
 		  ws.send('subscribe');
 		};
 		ws.onclose = closeMessage => observer.complete();
