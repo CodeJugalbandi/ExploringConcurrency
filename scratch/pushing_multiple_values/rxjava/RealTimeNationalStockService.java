@@ -15,7 +15,7 @@ import rx.schedulers.Schedulers;
 public class RealTimeNationalStockService {
 
   private final String uriTemplate = "wss://national-stock-service.herokuapp.com/stocks/realtime/%s";
-  // private final String uriTemplate = "wss://localhost:5000/stocks/realtime/%s";
+  // private final String uriTemplate = "ws://localhost:5000/stocks/realtime/%s";
 
   private Map<String, SubscriberSocket> subscribers = new HashMap<>();
 
@@ -36,7 +36,7 @@ public class RealTimeNationalStockService {
     if (subscribers.containsKey(clientId)) {
       final SubscriberSocket subscriberSocket = subscribers.get(clientId);
       if (subscriberSocket.isOpen())
-        subscriberSocket.send("unsubscribe");
+        subscriberSocket.send("{ \"command\" : \"unsubscribe\" }");
     }
   }
 
@@ -94,7 +94,7 @@ public class RealTimeNationalStockService {
     @Override
     public void onOpen(ServerHandshake handshakedata) {
       System.out.println("Connected");
-      send("subscribe");
+      send("{ \"command\" : \"subscribe\" }");
     }
 
     @Override

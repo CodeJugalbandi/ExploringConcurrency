@@ -19,13 +19,12 @@ ws.subscribe(
 // Send to Server
 setTimeout(() => {
   console.info("Sending subscribe...");
-  ws.next('client ready for communication...');
-  ws.next('subscribe');
+  ws.next("{ \"command\" : \"subscribe\" }");
 }, 4000);
 
 setTimeout(() => {
   console.info("Sending unsubscribe...");
-  ws.next('unsubscribe');
+  ws.next("{ \"command\" : \"unsubscribe\" }");
 }, 16000);
 
 setTimeout(() => {

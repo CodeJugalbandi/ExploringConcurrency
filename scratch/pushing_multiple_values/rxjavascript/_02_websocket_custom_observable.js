@@ -6,12 +6,22 @@ function connectTo(websocketUrl) {
 	return new rx.Observable(observer => {
 		console.log(`WebSocket URL = ${websocketUrl}`);
 		const ws = new WebSocket(websocketUrl);
+		
+	    const unsubscribeAndClose = () => {
+		  if (ws.readyState == 1) {
+			  console.info("unsubscribeAndClose...");
+			  ws.send("{ \"command\" : \"unsubscribe\" }");
+			  ws.close();
+		  }
+	    };
+		
 		// event emited when connected
 		ws.onopen = function(openMessage) {
 		  console.log(`websocket is connected...${openMessage}`)
 		  // sending a send event to websocket server
-		  ws.send('subscribe');
+		  ws.send("{ \"command\" : \"subscribe\" }");
 		};
+		
 		ws.onclose = closeMessage => observer.complete();
 		ws.onmessage = function(message) {
 	      try {
@@ -25,11 +35,13 @@ function connectTo(websocketUrl) {
 			  return;
 	        }
 		    if (messageJson.error) {
+			  unsubscribeAndClose();
 			  observer.error(messageJson);
 			  return;
 		    }
 			console.info(messageJson);
 		  } catch (e) {
+			unsubscribeAndClose();
 			observer.error(e);
 		  }
 		};
@@ -37,8 +49,8 @@ function connectTo(websocketUrl) {
 	   
 	   // on unsubscribe
 	   return () => {
+		 unsubscribeAndClose();
 	     observer.complete();
-		 ws.close();
 	   };
 	})
 	.pipe(share());

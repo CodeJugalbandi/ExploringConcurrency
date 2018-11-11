@@ -8,7 +8,6 @@ function connectTo(websocketUrl, onMessage, onError, onClose) {
 	ws.onopen = function(openMessage) {
 	  console.log(`websocket is connected...${openMessage}`)
 	  // sending a send event to websocket server
-	  ws.send('client ready for communication...');
 	  ready = true;
 	};
 	ws.onclose = closeMessage => onClose(closeMessage);
@@ -42,13 +41,13 @@ function connectTo(websocketUrl, onMessage, onError, onClose) {
 	    unsubscribe: function () {
 		  if (ready) {
   			console.info("Client sending 'unsubscribe' command...");
-		  	ws.send('unsubscribe');			
+			ws.send("{ \"command\" : \"unsubscribe\" }");
 		  }
 	    },
 		subscribe: function () {
   		  if (ready) {
 			console.info("Client sending 'subscribe' command...");
-  		  	ws.send('subscribe');			
+			ws.send("{ \"command\" : \"subscribe\" }");
   		  }
 		}
 	};
@@ -56,7 +55,7 @@ function connectTo(websocketUrl, onMessage, onError, onClose) {
 
 const ticker = "GOOG";
 const websocketUrl = `wss://national-stock-service.herokuapp.com/stocks/realtime/${ticker}`
-// const websocketUrl = `wss://localhost:5000/stocks/realtime/${ticker}`
+// const websocketUrl = `ws://localhost:5000/stocks/realtime/${ticker}`
 
 const subscription = connectTo(websocketUrl, 
 	message => console.info(message), 
