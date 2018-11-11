@@ -33,8 +33,8 @@ portfolio.add("MSFT", 40);
 const { webSocket } = require('rxjs/webSocket');
 
 const ticker = "";
-// const websocketUrl = `wss://national-stock-service.herokuapp.com/stocks/realtime/${ticker}`
-const websocketUrl = `ws://localhost:5000/stocks/realtime/${ticker}`
+const websocketUrl = `wss://national-stock-service.herokuapp.com/stocks/realtime/${ticker}`
+// const websocketUrl = `ws://localhost:5000/stocks/realtime/${ticker}`
 
 const ws = webSocket({
   url: websocketUrl,
