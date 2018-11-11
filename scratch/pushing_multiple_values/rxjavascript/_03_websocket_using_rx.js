@@ -2,12 +2,11 @@ const rx = require('rxjs');
 const { webSocket } = require('rxjs/webSocket');
 const ticker = "";
 const websocketUrl = `wss://national-stock-service.herokuapp.com/stocks/realtime/${ticker}`
-// const websocketUrl = `wss://localhost:5000/stocks/realtime/${ticker}`
+// const websocketUrl = `ws://localhost:5000/stocks/realtime/${ticker}`
 
 const ws = webSocket({
   url: websocketUrl,
-  WebSocketCtor: require('websocket').w3cwebsocket,
-	serializer: value => value //override default JSON stringifier.
+  WebSocketCtor: require('websocket').w3cwebsocket
 });
 
 ws.subscribe(
@@ -19,12 +18,12 @@ ws.subscribe(
 // Send to Server
 setTimeout(() => {
   console.info("Sending subscribe...");
-  ws.next("{ \"command\" : \"subscribe\" }");
+  ws.next({ command : "subscribe" });
 }, 4000);
 
 setTimeout(() => {
   console.info("Sending unsubscribe...");
-  ws.next("{ \"command\" : \"unsubscribe\" }");
+  ws.next({ command : "unsubscribe" });
 }, 16000);
 
 setTimeout(() => {
