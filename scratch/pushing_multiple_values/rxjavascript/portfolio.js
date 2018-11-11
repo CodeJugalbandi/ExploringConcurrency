@@ -1,5 +1,5 @@
 const rx = require('rxjs');
-const { tap, map, filter, scan, take, share } = require('rxjs/operators');
+const { concatMap, delay, tap, map, filter, scan, take, share } = require('rxjs/operators');
 
 class Portfolio {
   constructor() {
@@ -66,18 +66,37 @@ portfolio.netWorth(tickers).subscribe(
 );
 
 // Send to Server
-setTimeout(() => {
-  console.info("Sending subscribe...");
-  ws.next({ command : "subscribe" });
-}, 4000);
+const commands = [
+  {
+	command: function() {
+	  console.info("Sending subscribe..."); 
+	  ws.next({ command : "subscribe" });
+  	}, 
+	time: 3000
+  }, 
+  {
+	command: function() {
+	  console.info("Sending unsubscribe...");
+	  ws.next({ command : "unsubscribe" });
+    },
+	time: 8000
+  }, 
+  {
+	command: function() {
+	  console.info("Sending complete...");
+	  ws.complete(); // closes the connection
+    },
+	time: 2000
+  },
+  // {
+  //	command: function() {
+  // 	  console.info("Sending error...");
+  // 	  ws.error({code: 4000, reason: 'App broke'}); //closes the connection
+  //    },
+  //    time: 2000
+  // }
+];
 
-setTimeout(() => {
-  console.info("Sending unsubscribe...");
-  ws.next({ command : "unsubscribe" });
-}, 16000);
-
-setTimeout(() => {
-  console.info("Sending complete...this closes the connection");
-  ws.complete(); //closes the connection
-}, 17000);
-
+rx.from(commands)
+  .pipe(concatMap(item => rx.of(item.command).pipe(delay(item.time))))
+  .subscribe(cmd => cmd());
