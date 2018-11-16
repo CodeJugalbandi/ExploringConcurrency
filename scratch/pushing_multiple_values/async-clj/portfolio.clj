@@ -1,8 +1,8 @@
 (ns portfolio
   (:import [clojure.lang Atom]))
 
-(defn- stock-lot-worth [stock-lot current-price]
-  (->> stock-lot
+(defn- stocks-lot-worth [stocks-lot current-price]
+  (->> stocks-lot
        (map :quantity)
        (reduce +)
        (* current-price)))
@@ -15,7 +15,7 @@
 
 (defn- stocks-worth [symbol stocks-lot price-db]
   (if-let [price (get price-db symbol)]
-    (stock-lot-worth stocks-lot price)
+    (stocks-lot-worth stocks-lot price)
     (stocks-lot-cost stocks-lot)))
 
 (defn new-stocks [quantity & [buy-price]]
@@ -31,7 +31,7 @@
     (swap! portfolio assoc symbol (conj current-lot stocks))))
 
 (defn net-worth [^Atom portfolio price-db]
-  (reduce (fn [acc [symbol stock-lot]]
-            (+ acc (stocks-worth symbol stock-lot price-db)))
+  (reduce (fn [acc [symbol stocks-lot]]
+            (+ acc (stocks-worth symbol stocks-lot price-db)))
           0
           portfolio))
