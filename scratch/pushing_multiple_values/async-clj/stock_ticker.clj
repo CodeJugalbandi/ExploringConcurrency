@@ -74,7 +74,7 @@
   (doseq [[symbol qty buy-price] stocks-data]
     (p/add-stocks! portfolio symbol (p/new-stocks qty buy-price))))
 
-(comment
+(defn -main [& args]
 
   (do (def streamer (create-message-stream (get-ws-url)
                                            :on-connect subscribe
@@ -92,9 +92,10 @@
   (def net-worth-print-stop-fn (add-listener m (net-worth-printer portfolio)))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+  (Thread/sleep 100000)
   ;; Stop-knobs
-  (stop-fn)
-  (p/clear-portfolio! portfolio)
-  (print-stop-fn)
-  (net-worth-print-stop-fn))
+  #_(stop-fn)
+  #_(p/clear-portfolio! portfolio)
+  #_(print-stop-fn)
+  #_(net-worth-print-stop-fn))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
