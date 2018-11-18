@@ -40,29 +40,29 @@ using System.Net;
 
 class ParallelAsynchronousUsingThread 
 {
-  
-  static Thread CreateRequestThread() 
-  {
+  static Thread MakeRequestThread() {
     return new Thread(request => ((Request)request).Send());
   }
 
-  public static void Main(string[] args) 
-  {
-    string placesNearbyUrl = "https://geographic-services.herokuapp.com/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km";
-    string weatherUrl = "https://geographic-services.herokuapp.com/weather?lat=19.01&lon=72.8";
-    Request placesNearbyRequest = new Request(placesNearbyUrl);
-    Request weatherRequest = new Request(weatherUrl);
-    var placesNearbyThread = CreateRequestThread();
-    var weatherThread = CreateRequestThread();
-    	  
-    placesNearbyThread.Start(placesNearbyRequest);
-    weatherThread.Start(weatherRequest);
-    // explicit synchronization points
-    placesNearbyThread.Join();
-    weatherThread.Join();
+  public static void Main(string[] args) {
+    string host  = "https://geographic-services.herokuapp.com";
+    // string host  = "https://localhost:8000";
+    string nearbyPath = "/places/nearby", weatherPath = "/weather";
+    string lat = "lat=19.01", lon = "lon=72.8", radius = "radius=25", units = "unit=km";
     
-    string placesNearbyData = placesNearbyRequest.Get();
-    string weatherData = weatherRequest.Get();
+    string placesNearbyUrl = $"{host}{nearbyPath}?{lat}&{lon}&{radius}&{units}";
+    string weatherUrl = $"{host}{weatherPath}?{lat}&{lon}";
+    Request placesNearby = new Request(placesNearbyUrl);
+    Request weather = new Request(weatherUrl);
+    var placesNearbyRequestThread = MakeRequestThread();
+    var weatherRequestThread = MakeRequestThread();	  
+    placesNearbyRequestThread.Start(placesNearby);
+    weatherRequestThread.Start(weather);
+    // explicit synchronization points
+    placesNearbyRequestThread.Join();
+    weatherRequestThread.Join();
+    string placesNearbyData = placesNearby.Get();
+    string weatherData = weather.Get();
     string weatherAndPlacesNearby = $"{{ \"weather\" : {weatherData}, \"placesNearby\": {placesNearbyData} }}";
     Console.WriteLine(weatherAndPlacesNearby);
   }
