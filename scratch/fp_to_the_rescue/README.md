@@ -31,7 +31,80 @@ val weatherAndPlacesNearby = s"""{ "weather" : $weatherData, "placesNearby": $pl
 println(weatherAndPlacesNearby)
 ```
 
-**BRAHMA** We can make this parallel and speed-up the execution.  Lets see this in action by using Threads from Threadpool in C#.
+**BRAHMA** We can make this parallel and speed-up the execution. Lets use thread primitives to begin with. We need to spawn two threads, wait for each of them to finish and then gather the partial results to get complete results. Lets see this in C#
+
+```csharp
+using System;
+using System.Threading;
+using System.Net;
+
+class ParallelAsynchronousUsingThread 
+{
+  
+  static Thread CreateRequestThread() 
+  {
+    return new Thread(request => ((Request)request).Send());
+  }
+
+  public static void Main(string[] args) 
+  {
+    string placesNearbyUrl = "https://geographic-services.herokuapp.com/places/nearby?lat=19.01&lon=72.8&radius=25&unit=km";
+    string weatherUrl = "https://geographic-services.herokuapp.com/weather?lat=19.01&lon=72.8";
+    Request placesNearbyRequest = new Request(placesNearbyUrl);
+    Request weatherRequest = new Request(weatherUrl);
+    var placesNearbyThread = CreateRequestThread();
+    var weatherThread = CreateRequestThread();
+    	  
+    placesNearbyThread.Start(placesNearbyRequest);
+    weatherThread.Start(weatherRequest);
+    // explicit synchronization points
+    placesNearbyThread.Join();
+    weatherThread.Join();
+    
+    string placesNearbyData = placesNearbyRequest.Get();
+    string weatherData = weatherRequest.Get();
+    string weatherAndPlacesNearby = $"{{ \"weather\" : {weatherData}, \"placesNearby\": {placesNearbyData} }}";
+    Console.WriteLine(weatherAndPlacesNearby);
+  }
+}
+
+class Request
+{
+  private string data;
+  private Exception exception;
+  private readonly string url;
+
+  public Request(string url)
+  {
+    this.url = url;
+  }
+
+  private void BypassAllCertificates()
+  {
+    ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain,error) => true;
+  }
+
+  public void Send() {
+    try {
+      using (WebClient wc = new WebClient())
+      {
+        BypassAllCertificates();
+        data = wc.DownloadString(url);
+      }
+    } catch(Exception e) {
+      this.exception = e;
+    }
+  }
+
+  public String Get() {
+    if (exception == null)
+      return data;
+    throw exception;
+  }
+}
+```
+
+**BRAHMA** But we know that threads are a scarce resource and they cannot be re-used. So, creating ad-hoc threads like this is not advisable. So, we use ThreadPool to re-use threads, put it back into the pool after they are used for a task and thus help with thread management.
 
 ```csharp
 using System;
