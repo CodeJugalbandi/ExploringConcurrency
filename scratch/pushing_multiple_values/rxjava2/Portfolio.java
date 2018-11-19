@@ -40,40 +40,16 @@ public class Portfolio {
 
     RealTimeNationalStockService stockService = new RealTimeNationalStockService();
     Flowable<JSONObject> realtimePrices = stockService.asFlowable()
-      .map(message -> new JSONObject(message))
       .filter(json -> json.has("ticker"))
       .share();
 	
-    // Create a stream using realtimePrices for showing buy prices with brokerage
-    // add 2% brokerage to every price that the user sees.
-    double brokerage = 0.02;
-    Flowable<JSONObject> realtimePricesWithBrokerage = realtimePrices	  
-      .map(message -> {
-        double brokeredPrice = message.getDouble("price") * (1 + brokerage);
-        message.put("price", brokeredPrice);	
-        return message;
-      });
-     	
-    // Create another stream using realtimePrices for showing buy prices with brokerage
-    // Calculate Networth of the portfolio on every tick of any stock in it.
-    Flowable<Double> netWorth = portfolio.netWorth(realtimePrices);
-	
-    Disposable pricesWithBrokerage = realtimePricesWithBrokerage
-      .subscribe(tick -> System.out.println("Price => " + tick.getDouble("price")), 
-        error -> System.out.println("Error => " + error),
-        () -> System.out.println("*** DONE Prices With Brokerage ***"));
-	
-    Disposable worth = netWorth
+    Disposable netWorth = portfolio.netWorth(realtimePrices)
       .subscribe(total -> System.out.println("NetWorth => " + total), 
         error -> System.out.println("Error => " + error),
         () -> System.out.println("DONE"));
     
-    Thread.sleep(6000);
+    Thread.sleep(10000);
     
-    pricesWithBrokerage.dispose();
-    
-    Thread.sleep(8000);
-    
-    worth.dispose();
+    netWorth.dispose();
   }
 }

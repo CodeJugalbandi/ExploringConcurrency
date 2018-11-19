@@ -12,7 +12,6 @@ class Runner {
   static Flowable<JSONObject> nationalStockExchangeFeed() {
     RealTimeNationalStockService stockService = new RealTimeNationalStockService();
     return stockService.asFlowable()
-      .map(message -> new JSONObject(message))
       .filter(json -> json.has("ticker"))
       .share();
   }
@@ -47,10 +46,10 @@ class Runner {
     waitFor(8, TimeUnit.SECONDS);
 
     Portfolio myPortfolio = new Portfolio();
-    myPortfolio.add("GOOG", 10);
-    myPortfolio.add("AAPL", 20);
-    myPortfolio.add("YHOO", 30);
-    myPortfolio.add("MSFT", 40);
+    myPortfolio.add("GOOG", 40);
+    myPortfolio.add("AAPL", 30);
+    myPortfolio.add("ORCL", 10);
+    myPortfolio.add("MSFT", 10);
     
     Disposable netWorth = myPortfolio.netWorth(stockPrices)
       .subscribe(total -> System.out.println("NetWorth => " + total), 
