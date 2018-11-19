@@ -10,10 +10,9 @@ import io.reactivex.disposables.*;
 
 class Runner {
   static Flowable<JSONObject> nationalStockExchangeFeed() {
-    RealTimeNationalStockService stockService = new RealTimeNationalStockService();
-    return stockService.asFlowable()
-      .filter(json -> json.has("ticker"))
-      .share();
+    return new RealTimeNationalStockService()
+      .asFlowable()
+      .filter(json -> json.has("ticker"));
   }
   
   static Flowable<JSONObject> pricesWithBrokerage(Flowable<JSONObject> prices, double brokerage) {
@@ -60,5 +59,14 @@ class Runner {
     System.out.println("Stopped buyPrices");
     stop(netWorth, 6, TimeUnit.SECONDS);
     System.out.println("Stopped NetWorth");
+    
+    System.out.println("Starting NetWorth Again...");
+    netWorth = myPortfolio.netWorth(stockPrices)
+      .subscribe(total -> System.out.println("NetWorth => " + total), 
+         error -> System.out.println("Error => " + error),
+         () -> System.out.println("*** DONE NetWorth ***"));
+    
+    stop(netWorth, 7, TimeUnit.SECONDS);
+    System.out.println("Stopped NetWorth Again!");
   }
 }

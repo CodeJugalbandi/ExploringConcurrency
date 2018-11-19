@@ -67,22 +67,23 @@ public class RealTimeNationalStockService {
           message -> subscriber.onNext(message), 
           error -> subscriber.onError(error), 
           (code, reason) -> subscriber.onComplete());
-
-    	subscriber.setCancellable(() -> {
+        subscriber.setCancellable(() -> {
           if (!clientId.isEmpty()) {
-            System.out.println(statusMsg + "Unsubscribing..."); 
+            System.out.println(statusMsg + "Unsubscribing...");
             unsubscribe(clientId);
-            System.out.println(statusMsg + "Closing...");             
+            System.out.println(statusMsg + "Closing...");
             close(clientId);
-            System.out.println(statusMsg + "Closed.");                         
+            System.out.println(statusMsg + "Closed.");
           }
-    	});
+        });
       } catch (MalformedURLException | URISyntaxException e) {
         subscriber.onError(e);
       } 
     }, BackpressureStrategy.DROP)
     .subscribeOn(Schedulers.io())
-    .map(message -> new JSONObject(message));
+    .observeOn(Schedulers.computation())
+    .map(message -> new JSONObject(message))
+    .share();
   }
 
   private static class SubscriberSocket extends WebSocketClient {
@@ -90,8 +91,10 @@ public class RealTimeNationalStockService {
     private Consumer<Throwable> onError;
     private BiConsumer<Integer, String> onClose;
 
-    public SubscriberSocket(URI serverUri, Consumer<String> onMessage, Consumer<Throwable> onError,
-        BiConsumer<Integer, String> onClose) {
+    public SubscriberSocket(URI serverUri, 
+      Consumer<String> onMessage, 
+      Consumer<Throwable> onError,
+      BiConsumer<Integer, String> onClose) {
       super(serverUri);
       this.onMessage = onMessage;
       this.onError = onError;
@@ -101,7 +104,7 @@ public class RealTimeNationalStockService {
     @Override
     public void onOpen(ServerHandshake handshakedata) {
       System.out.println("Connected");
-	  send("{ \"command\" : \"subscribe\" }");
+      send("{ \"command\" : \"subscribe\" }");
     }
 
     @Override
@@ -112,7 +115,7 @@ public class RealTimeNationalStockService {
     @Override
     public void onClose(int code, String reason, boolean remote) {
       onClose.accept(code, reason);
-      System.out.println("Disconnected");
+      System.out.println("WebSocket Closed");
     }
 
     @Override

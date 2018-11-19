@@ -40,8 +40,7 @@ public class Portfolio {
 
     RealTimeNationalStockService stockService = new RealTimeNationalStockService();
     Flowable<JSONObject> realtimePrices = stockService.asFlowable()
-      .filter(json -> json.has("ticker"))
-      .share();
+      .filter(json -> json.has("ticker"));
 	
     Disposable netWorth = portfolio.netWorth(realtimePrices)
       .subscribe(total -> System.out.println("NetWorth => " + total), 
