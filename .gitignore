@@ -5,3 +5,4 @@
 **/*/*.exe
 **/*/mono_crash.*.json
 **/*/package-lock.json
+/**/.cpcache
