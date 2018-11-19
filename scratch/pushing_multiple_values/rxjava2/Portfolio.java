@@ -7,6 +7,7 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subscribers.ResourceSubscriber;
+import io.reactivex.disposables.*;
 
 public class Portfolio {
   private final Map<String, Integer> stocks = new ConcurrentHashMap<>();
@@ -39,35 +40,16 @@ public class Portfolio {
 
     RealTimeNationalStockService stockService = new RealTimeNationalStockService();
     Flowable<JSONObject> realtimePrices = stockService.asFlowable()
-      .map(message -> new JSONObject(message))
       .filter(json -> json.has("ticker"))
       .share();
 	
-    // add 2% brokerage to every price that the user sees.
-    double brokerage = 0.02;
-    Flowable<JSONObject> realtimePricesWithBrokerage = realtimePrices	  
-      .doOnNext(tick -> System.out.println("Before Brokerage  => " + tick))
-      .map(message -> {
-        double brokeredPrice = message.getDouble("price") * (1 + brokerage);
-        message.put("price", brokeredPrice);	
-        return message;
-      })
-      .doOnNext(tick -> System.out.println("After Brokerage  => " + tick));
-	
-    // Calculate Networth of the portfolio on every tick of any stock in it.
-    Flowable<Double> netWorth = portfolio.netWorth(realtimePrices);
-	
-    System.out.println(">> Press any key to terminate.... <<");
-    realtimePricesWithBrokerage
-      .subscribe(tick -> System.out.println("Price => " + tick.getDouble("price")), 
-        error -> System.out.println("Error => " + error),
-        () -> System.out.println("DONE"));
-	
-    netWorth
+    Disposable netWorth = portfolio.netWorth(realtimePrices)
       .subscribe(total -> System.out.println("NetWorth => " + total), 
         error -> System.out.println("Error => " + error),
         () -> System.out.println("DONE"));
-	
-    System.in.read();
+    
+    Thread.sleep(10000);
+    
+    netWorth.dispose();
   }
 }

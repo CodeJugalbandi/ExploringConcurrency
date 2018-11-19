@@ -54,12 +54,13 @@ public class RealTimeNationalStockService {
     }
   }
   
-  public Flowable<String> asFlowable() {
+  public Flowable<JSONObject> asFlowable() {
     return asFlowable("");
   }
 	
-  public Flowable<String> asFlowable(String ticker) {
-    System.out.println(String.format("RealTimeNationalStockServiceObservable.asFlowable(%s): Ready...", ticker));
+  public Flowable<JSONObject> asFlowable(String ticker) {
+    String statusMsg = String.format("RealTimeNationalStockServiceObservable.asFlowable(%s): ", ticker);
+    System.out.println(statusMsg + "Ready...");
     return Flowable.<String>create(subscriber -> {
       try {
         final String clientId = subscribeTo(ticker, 
@@ -69,18 +70,19 @@ public class RealTimeNationalStockService {
 
     	subscriber.setCancellable(() -> {
           if (!clientId.isEmpty()) {
-            System.out.println("RealTimeNationalStockService asFlowable : Unsubscribing...");
+            System.out.println(statusMsg + "Unsubscribing..."); 
             unsubscribe(clientId);
-            System.out.println("RealTimeNationalStockService asFlowable : Closing...");
+            System.out.println(statusMsg + "Closing...");             
             close(clientId);
-            System.out.println("RealTimeNationalStockService asFlowable : Closed Subscription");
+            System.out.println(statusMsg + "Closed.");                         
           }
     	});
       } catch (MalformedURLException | URISyntaxException e) {
         subscriber.onError(e);
       } 
-    }, BackpressureStrategy.MISSING)
-    .subscribeOn(Schedulers.io());
+    }, BackpressureStrategy.DROP)
+    .subscribeOn(Schedulers.io())
+    .map(message -> new JSONObject(message));
   }
 
   private static class SubscriberSocket extends WebSocketClient {
@@ -121,10 +123,8 @@ public class RealTimeNationalStockService {
 
   public static void main(String[] args) throws Exception {
     RealTimeNationalStockService stockService = new RealTimeNationalStockService();
-	Disposable disposable = stockService.asFlowable()
-     // Disposable disposable = stockService.asFlowable("AMZN")
+    Disposable disposable = stockService.asFlowable()
       .doOnNext(System.out::println)
-      .map(message -> new JSONObject(message))
       .filter(json -> json.has("ticker"))
       .map(tick -> Arrays.asList(tick.getString("ticker"), tick.getDouble("price")))
       .subscribe(tick -> System.out.println("Ticker Price => " + tick), 
