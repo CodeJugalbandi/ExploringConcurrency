@@ -69,11 +69,11 @@ public class RealTimeNationalStockService {
 
     	subscriber.setCancellable(() -> {
           if (!clientId.isEmpty()) {
-            System.out.println("RealTimeNationalStockService asFlowable : Unsubscribing...");
+            System.out.println("RealTimeNationalStockService asFlowable(%s): Unsubscribing...");
             unsubscribe(clientId);
-            System.out.println("RealTimeNationalStockService asFlowable : Closing...");
+            System.out.println("RealTimeNationalStockService asFlowable(%s): Closing...");
             close(clientId);
-            System.out.println("RealTimeNationalStockService asFlowable : Closed Subscription");
+            System.out.println("RealTimeNationalStockService asFlowable(%s): Closed.");
           }
     	});
       } catch (MalformedURLException | URISyntaxException e) {
@@ -121,8 +121,7 @@ public class RealTimeNationalStockService {
 
   public static void main(String[] args) throws Exception {
     RealTimeNationalStockService stockService = new RealTimeNationalStockService();
-	Disposable disposable = stockService.asFlowable()
-     // Disposable disposable = stockService.asFlowable("AMZN")
+    Disposable disposable = stockService.asFlowable()
       .doOnNext(System.out::println)
       .map(message -> new JSONObject(message))
       .filter(json -> json.has("ticker"))
