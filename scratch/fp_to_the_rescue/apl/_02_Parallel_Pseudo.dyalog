@@ -1,5 +1,8 @@
- _01_Sequential←{
-     ⍝ Get Weather and Location data sequentially
+ _02_Parallel_Pseudo←{
+
+     ⍝ Get Weather and Location data using APL "pseudo-threading"
+     ⍝ => Launch threads using "spawn" operator & (returns Thread IDs)
+     ⍝ => Collect results using ⎕TSYNC (thread synchronization)
 
      getRequestData←{z←HttpCommand.Get ⍵
          0=z.rc:z.Data}
@@ -12,8 +15,7 @@
      weatherUrl←host,weatherPath,'?',lat,'&',lon
 
      startTime←⎕AI[3]
-     placesNearbyData←getRequestData placesNearbyUrl
-     weatherData←getRequestData weatherUrl
+     (placesNearbyData weatherData)←⎕TSYNC getRequestData&¨placesNearbyUrl weatherUrl
      timeTaken←⎕AI[3]-startTime
 
      weatherAndPlacesNearby←'{ "weather" : ',weatherData,', "placesNearby": ',placesNearbyData,' }"'
