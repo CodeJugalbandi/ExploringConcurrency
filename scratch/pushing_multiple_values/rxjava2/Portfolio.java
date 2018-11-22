@@ -20,8 +20,8 @@ public class Portfolio {
     stocks.put(ticker, oldQty + qty);
   }
 	
-  public Flowable<Double> netWorth(Flowable<JSONObject> tickers) throws Exception {
-    return tickers
+  public Flowable<Double> netWorth(Flowable<JSONObject> stockPrices) throws Exception {
+    return stockPrices
       .filter(tick -> stocks.containsKey(tick.getString("ticker")))
       .scan(new HashMap<String, Double>(), (acc, tick) -> {
         String ticker = tick.getString("ticker");

@@ -15,8 +15,8 @@ class Runner {
       .filter(json -> json.has("ticker"));
   }
   
-  static Flowable<JSONObject> pricesWithBrokerage(Flowable<JSONObject> prices, double brokerage) {
-    return prices.map(message -> {
+  static Flowable<JSONObject> pricesWithBrokerage(Flowable<JSONObject> stockPrices, double brokerage) {
+    return stockPrices.map(message -> {
       double brokeredPrice = message.getDouble("price") * (1 + brokerage);
       message.put("price", brokeredPrice);	
       return message;
