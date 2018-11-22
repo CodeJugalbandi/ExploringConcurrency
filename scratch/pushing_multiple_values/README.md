@@ -1,12 +1,15 @@
 # Streaming Events (Pushing Multiple Values)
 
-In this melody, we will look at how reactive programming uses Functional Programming and helps with the concurrency in the system.  
+In this melody, we will look at how reactive programming uses Functional Programming and increases the concurrency in the system.  
 
 ## Problem Statement
+1. Streaming NetWorth
+ 
+    * Given a bunch of stocks in user's portfolio, 
+    * When the user subscribes to receiving price updates for them in   real-time, 
+    * Then the porfolio calculates its Networth on every tick of any stock in it.
 
-We will demonstrate this using problem statement - Given a bunch of stocks in user's portfolio, when the user subscribes to receiving price updates for them in real-time, then the porfolio calculates its Networth on every tick of any stock in it.
-
-Finally, user sees buy prices for all the stocks.  A 2% brokerage is added to every price that the user sees when purchasing.
+2. Buy Prices - A 2% brokerage is added to every price that the user sees for purchasing.
 
 ## CodeJugalbandi
 
@@ -47,15 +50,15 @@ defn create-message-stream [url & {:keys [on-connect before-disconnect]
 
 // Jaju, please fill up clojure here
 
-**KRISHNA** Let me show you this using Reactive Extensions in Java.
+**KRISHNA** Let me show you this using Reactive Extensions in Java.  Thisis the main method where all actions are happening.
 
 ```java
 // Runner.java
 public static void main(String[] args) throws Exception {
+  // Stock Prices Stream
   Flowable<JSONObject> stockPrices = nationalStockExchangeFeed();
 	
-  // Create a stream using stockPrices for showing buy prices with brokerage
-  double brokerage = 0.02;  // add 2% brokerage to every price that the user sees.
+  double brokerage = 0.02;  // add 2% brokerage to every stock-price.
   Disposable buyPrices = pricesWithBrokerage(stockPrices, brokerage)
     .subscribe(tick -> System.out.println(String.format("Buy Price => [%s, %f]", tick.getString("ticker"), tick.getDouble("price"))), 
        error -> System.out.println("Error => " + error),
@@ -128,12 +131,81 @@ public Flowable<JSONObject> asFlowable(String ticker) {
 }
 ```
 
-**KRISHNA** It creates a Flowable<JSONObject> using the ```create()``` factory method.  This is where we ```subscribeTo()``` to the callbacks provided by this service.  Additionally, we set the cancellation callback using the ```setCancellable()``` which gets invoked when there are no subscribers left or there is an explicit call to ```dispose()``` the subscription.  Afterall, we don't want to hang-on an expensive Web-Socket connection and go on pushing messages when no one is subscribed.  
+**KRISHNA** It creates a Flowable<JSONObject> using the ```create()``` factory method.  This is where we ```subscribeTo()``` to the callbacks provided by this service.  Additionally, we set the cancellation callback using the ```setCancellable()``` which gets invoked when there are no subscribers left or there is an explicit call to ```dispose()``` the subscription.  Afterall, we don't want to hang-on an expensive Web-Socket connection and go on pushing messages when no one is subscribed.   The last parameter, is the ```BackPressureStrategy``` which is set to ```DROP```, exactly like in the Clojure code.
 
+**KRISHNA**  Lets look down the Observable pipeline.  The two operators in ```Rx``` that enable concurrency is ```subscribeOn``` and ```observeOn```.  Both these operators need Schedulers to allocate work on its threads.  As in the create method, we are doing IO operation using Web-Socket, we use a special IO scheduler and further down the pipeline, it will be all computations, like converting a string message to a JSON message, adding brokerage etc..., so we use the Computational Schduler.  So, at this point, data-emissions switch threads.  
 
-Also, using ```share()```, we make this Observable hot.  In ```Rx```, an observable can either be hot or cold.  Hot observables are shared by all the subscribers, whereas when a subscriber connects to a cold observable, it gets a brand new observable with an new Web-Socket connection.  So, to prevent this expensive resource creation again and again, we do resource sharing using the ```share()``` operator.
+```java
+public Flowable<JSONObject> asFlowable(String ticker) {
+  String statusMsg = String.format("RealTimeNationalStockServiceObservable.asFlowable(%s): ", ticker);
+  System.out.println(statusMsg + "Ready...");
+  return Flowable.<String>create(subscriber -> { ... }, BackpressureStrategy.DROP)
+  .subscribeOn(Schedulers.io())
+  .observeOn(Schedulers.computation())
+  .map(message -> new JSONObject(message))
+  .share();
+}
+```
 
-**KRISHNA**  I have created  ```Flowable```
+**KRISHNA** Also, using ```share()```, we make this Observable hot.  In ```Rx```, an observable can either be hot or cold.  Hot observables are shared by all the subscribers, whereas when a subscriber connects to a cold observable, it gets a brand new observable with an new Web-Socket connection.  So, to prevent this expensive resource creation again and again, we do resource sharing using the ```share()``` operator.  This is quite similar like the ```tap```s used in the above Clojure code for attaching multiple channels.
+
+**KRISHNA** Finally, we create ```pricesWithBrokerage ``` stream 
+
+```java
+static Flowable<JSONObject> pricesWithBrokerage(Flowable<JSONObject> stockPrices, double brokerage) {
+  return stockPrices.map(message -> {
+    double brokeredPrice = message.getDouble("price") * (1 + brokerage);
+    message.put("price", brokeredPrice);
+    return message;
+  });
+}
+```
+
+and the ```netWorth``` using the ```stockPrices``` stream.  In the ```netWorth``` stream, we calculate the running total on each tick using ```scan```, ```map``` and ```reduce``` operators.
+
+```java
+public Flowable<Double> netWorth(Flowable<JSONObject> stockPrices) throws Exception {
+  return stockPrices
+    .filter(tick -> stocks.containsKey(tick.getString("ticker")))
+    .scan(new HashMap<String, Double>(), (acc, tick) -> {
+      String ticker = tick.getString("ticker");
+      acc.put(ticker, stocks.get(ticker) * tick.getDouble("price"));
+      return acc;  
+    })
+    .map(worth -> worth.values().stream().reduce(0d, (a, e) -> a + e));
+}
+```
+
+So, on each price tick, all the things are re-calculated, without making the system unresponsive.  In case, we don't need any of the streams, we can then dispose them off and when we need them, we can start them again.
+
+```java
+public static void main(String[] args) throws Exception {
+
+  ...
+  ...  
+  
+  Disposable netWorth = myPortfolio.netWorth(stockPrices)
+    .subscribe(total -> System.out.println("NetWorth => " + total), 
+       error -> System.out.println("Error => " + error),
+       () -> System.out.println("*** DONE NetWorth ***"));
+    
+  stop(buyPrices, 6, TimeUnit.SECONDS);
+  System.out.println("Stopped buyPrices");
+  stop(netWorth, 6, TimeUnit.SECONDS);
+  System.out.println("Stopped NetWorth");
+    
+  System.out.println("Starting NetWorth Again...");
+  netWorth = myPortfolio.netWorth(stockPrices)
+    .subscribe(total -> System.out.println("NetWorth => " + total), 
+       error -> System.out.println("Error => " + error),
+       () -> System.out.println("*** DONE NetWorth ***"));
+    
+  stop(netWorth, 7, TimeUnit.SECONDS);
+  System.out.println("Stopped NetWorth Again!");
+}
+```
+
+So, thats using Rx we've solved the problem.
 
 ## Reflections
 
