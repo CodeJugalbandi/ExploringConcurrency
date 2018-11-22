@@ -43,7 +43,7 @@ defn create-message-stream [url & {:keys [on-connect before-disconnect]
 **BRAHMA** The channel is set into a continuous ```go-loop``` and ```recur```, it loops until the stop function is called.  We read the message from ```ws-conn``` by ```deref```ing it and the associated stream.  This message is pushed on to the channel and is now available for the listeners.
 
 
-
+![Clojure-Channels](Clojure-Channels.png)
 
 // Jaju, please fill up clojure here
 
@@ -80,6 +80,7 @@ public static void main(String[] args) throws Exception {
   System.out.println("Stopped NetWorth");
 }
 ```
+![Rx-Observables](Rx-Observables.png)
 
 **KRISHNA** As, you can see that ```nationalStockExchangeFeed()``` returns a continuous real-time price from the National Stock Service as a ```Flowable<JSONObject>```.  In RxJava2 there are two types, ```Observable``` and ```Flowable```.  The difference between them is that ```Flowable``` can handle backpressure, while Observable cannot.  In RxJava1, it was ```Observable``` only.  For the purposes of the current   explanation, I'll ignore this technical difference and treat ```Flowable``` and ``Observable`` in an informal sense by treating them synonymously.  So, though the code says ```Flowable```, I'll refer to it as an ```Observable```.  I'll come to ```Flowable``` when we see that piece of code.
 
@@ -91,6 +92,7 @@ static Flowable<JSONObject> nationalStockExchangeFeed() {
     .filter(json -> json.has("ticker"));
 }
 ```
+
 
 **KRISHNA** This function uses ```RealTimeNationalStockService``` - a stand-in that subscribes to the realtime prices from the National Stock Service using Web-Socket and has an ```asFlowable()``` method to create an Observable.  As we receive other JSON messages along with stock price message, a filter has been set-up to allow only pricing related messages.  Now, lets look at the ```asFlowable()``` method of the ```RealTimeNationalStockService```
 
