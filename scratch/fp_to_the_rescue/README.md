@@ -4,6 +4,7 @@ In this melody, we will look at how FP rescues us from the pitfalls by shifting 
 
 Etymologically the structure of concurrent code has been different from the structure of sequential code.  But, we shall see how FP can be leveraged to provide a syntactic layer with async-await using a library or within a language  to make the structure of sequential code and parallel code look similar.
 
+
 ## Problem Statement
 
 We will demonstrate this using problem statement - Given a latitude and longitude of a place, we want to get the following details:
@@ -276,10 +277,16 @@ Await.result(weatherAndPlacesNearby, Duration.Inf) // Wait for results, only for
 
 **BRAHMA** Now, the structure is quite similar, we simply wrap things in async and await construct and we are still not changing our thought process.  In otherwords, we retain the linear program control flow while being asynchronous.  In Scala specifically, we could also have used for-comprehensions, but they are more generic than the async-await.
 
-TODO: **VISHNU** Lets cross over to Array-Oriented Paradigm, in APL, we too use Futures and Isolates.
+**BRAHMA** But, there are lots of restrictions with async-await in Scala.  One of the things is that - as async-await is a compile-time transformation, it cannot be passed around as values.  If you look at Eta language, it provides a ```Fiber``` monad.  Using this, we don't need the async-await syntactic sugar, we simply code like it is synchronous code.  At this point in time, Eta fibers are still in development.
+
 
 ## Reflections
 
-**WIP =>**
+**KRISHNA**  This is quite a journey and to quickly recap - in early days, we have used Threads to achieve concurrency.  But we soon realized that it is too difficult to work at this level of abstraction, due to many reasons.  ThreadPool got introduced to simplify Thread management.  But that too, was not enough as we still had to deal with synchronization issues using locks and mutexes.  So, to get the results we had to block as we saw in our Clojure example. 
 
-In the early days, we have used Threads to achieve concurrency and parallelism. But we soon realized that it is too difficult to work at this level of abstraction, due to many reasons.  ThreadPool got introduced to simplify Thread management.  Also, the data-Push was more concretized.  However the other problems still remained unaddressed.  In the main-stream imperative and OO languages like C#, Java, C++,
+**BRAHMA** True, and then the data-push was more focussed upon and we relied on callbacks, but that lead to callback hell and so Monads like ```Task``` in ```C#```, ```Promise``` in ```JavaScript``` and ```Future``` in Scala bailed us out.  However, still the structure of concurrent code and sequential code was different. With the compile-time transformations, we got async-await in languages like C#, JavaScript and Scala.  This brought us still closer to sequential code.  But with Eta ```Fiber```s one cannot differentiate between sequential code and parallel by looking at it, one has to look at the types to discern that.
+
+**KRISHNA** Also, one of the most important contributions of FP in solving concurrency related race conditions and synchronization was to get rid the shared mutable state altogether.  This is quite a departure from the old way of doing thing.  We now can reason about code with confidence using FP.  Truely, it has rescued us out from the perils that we faced in the early days.
+
+
+
