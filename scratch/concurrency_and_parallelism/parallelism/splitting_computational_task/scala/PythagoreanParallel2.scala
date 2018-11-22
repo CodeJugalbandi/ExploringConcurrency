@@ -57,7 +57,7 @@ def time[T, R](f: Function[T, R]): Function[T, R] = {
 // Parallelization using Parallel Lists (Results averaged over 5 runs)
 // (without interchanged sides (3,4,5) and (4,3,5), only (3,4,5))
 // ===================================================================
-// println(time(pythagoreansParallel2)(10))   
+// println(time(pythagoreansParallel2)(10))
 // println(time(pythagoreansParallel2)(100))  
 // println(time(pythagoreansParallel2)(250))  
 // println(time(pythagoreansParallel2)(500))  
