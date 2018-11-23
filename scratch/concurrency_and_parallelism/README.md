@@ -249,7 +249,7 @@ public class Server implements AutoCloseable {
 
 **BRAHMA** So, this is Concurrency.  
 
-**BRAHMA** Let me now show you an example of Parallelism by splitting an I/O task.  Lets say we have a ```Porfolio``` comprising of several stocks.  In order to calculate the net worth of a portfolio, it uses a proxy ```NationalStockService``` which reaches out over the network to get prices of stocks it holds.  
+**BRAHMA** Let me now show you an example of Parallelism by splitting an I/O task.  Lets say we have a ```Porfolio``` comprising of several stocks.  In order to calculate the net worth of a portfolio, it uses a proxy ```NationalStockService``` which reaches out over the network to get prices of stocks it holds.  I'll begin with the sequential version first.
 
 ```java
 public class Portfolio {
@@ -321,7 +321,39 @@ Overall Time 3748(ms)
 NetWorth = 17192.199999999997
 ```
 
-**BRAHMA** Now, lets make this parallel.  In order to do this, I'll simply turn on the ```parallel()``` switch on the ```Stream``` and this code now runs in parallel.  Internally, threads are unleashed and each I/O request is now made on a separate thread.
+**MAHESH** Let me show you how this would look in APL.
+
+```apl
+PortfolioSequential←{
+  codes←'GOOG' 'AAPL' 'YHOO' 'MSFT' 'ORCL' 'AMZN' 'GOOG'
+  quantity←10 20 30 40 40 50 90
+
+  starttime←⎕AI[2]
+  price←GetPrice¨codes       ⍝ ¨  (each) is sequential
+  networth←price+.×quantity
+  ⎕←'Sequential net worth: 'networth('elapsed ms: ',⍕⎕AI[2]-starttime)
+}
+
+Sequential net worth:   17194.5  elapsed ms: 8360 
+```
+
+**MAHESH** All I need to do is introduce the ```#.IÏ``` parallel operator, as you can see the the two upper-cased I's mean parallelise the opertion.  Here every price is obtained using a seperate single-threaded process that is spawned by APL.  The inner product is obtained only after every single price is obtained.
+
+```apl
+PortfolioParallel←{
+  codes←'GOOG' 'AAPL' 'YHOO' 'MSFT' 'ORCL' 'AMZN' 'GOOG'
+  quantity←10 20 30 40 40 50 90
+     
+  starttime←⎕AI[2]
+  price←GetPrice #.IÏ codes  ⍝ IÏ is model of ∥¨ (parallel each)
+  networth←price+.×quantity
+  ⎕←'Parallel net worth: 'networth('elapsed ms: ',⍕⎕AI[2]-starttime)
+}
+
+Parallel net worth:   19337.1  elapsed ms: 1234  
+```
+
+**BRAHMA** This is indeed interesting to see parallel code rendered in APL.  Java Streams, like the APL ```#.IÏ``` parallel operator have a parallel switch, I'll simply turn on the ```parallel()``` switch on the ```Stream``` and this code now runs in parallel.  Internally, threads are unleashed and each I/O request is now made on a separate thread.
 
 ```java { highlight: [9]}
 public class Portfolio {
