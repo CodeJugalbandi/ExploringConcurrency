@@ -1,10 +1,9 @@
-# Streaming Events (Pushing Multiple Values)
+# Everything is an Event (Pushing Multiple Values)
 
 In this melody, we will look at how reactive programming uses Functional Programming and increases the concurrency in the system.  
 
 ## Problem Statement
 1. Streaming NetWorth
- 
     * Given a bunch of stocks in user's portfolio, 
     * When the user subscribes to receiving price updates for them in   real-time, 
     * Then the porfolio calculates its Networth on every tick of any stock in it.
@@ -13,7 +12,31 @@ In this melody, we will look at how reactive programming uses Functional Program
 
 ## CodeJugalbandi
 
-**BRAHMA** In Clojure, we have the core-async library that can help us create a highly concurrent system. The core abstraction here is a Channel.  Imagine a channel like a pipe, where at one end can push messages and listen to them at the other end by registering a listener.
+**BRAHMA** In Clojure, we have the core-async library that can help us create a highly concurrent system.  Lets start by looking at the ```main``` function.  In here, we define a ```streamer```, which essentially creates a connection to the Web-Socket end-point using the supplied url and consumes ```on-connect``` and ```before-disconnect``` callbacks required for subscription and unsubscription by the end-point to which we are connecting.  Once the connection is made, we get a Channel - ```ch``` from the ```streamer```.  Along with that, we also get a ``stop-fn`` useful to stop streaming the prices.  
+
+```clojure
+(defn -main [& args]
+
+  (do (def streamer (create-message-stream (get-ws-url)
+                                           :on-connect subscribe
+                                           :before-disconnect unsubscribe))
+      (def ch (:ch streamer))
+      (def stop-fn (:stop-fn streamer))
+      (def m (async/mult ch)))
+
+  (do
+      (defonce portfolio (p/new-portfolio))
+      (load-portfolio! portfolio (-> "portfolio.edn" slurp edn/read-string)))
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  (def print-stop-fn (add-listener m stock-info-printer))
+  (def net-worth-print-stop-fn (add-listener m (net-worth-printer portfolio))))
+```  
+**BRAHMA** Now, in Clojure, we can only connect one listener to a channel, hence we need to create a multiplexed channel from the existing channel using the ```async/mult``` function.  To this async channel, we can then connect multiple listeners.  We connect two listeners - a ```buy-price-printer``` and a ```net-worth-printer``` and start listening to messages on that.  The overall connection look like as shown in the diagram below:
+
+![Clojure-Channels](Clojure-Channels.png)
+
+**BRAHMA** Now, lets look at the definitions of functions called from main, starting with the ```create-message-stream``` function.  
 
 ```clojure
 defn create-message-stream [url & {:keys [on-connect before-disconnect]
@@ -37,20 +60,36 @@ defn create-message-stream [url & {:keys [on-connect before-disconnect]
     {:ch ch :stop-fn stop-fn}))
 ```
 
-**BRAHMA** A channel is set-up by using the ```chan``` function.  To this function, we pass a ```dropping-buffer``` which essentially drops the messages that it receives when the internal buffer becomes full.  We then transform the string messages it receives from the Websocket connection ```ws-conn``` to JSON and further to a Clojure Map using the transformation function ```keyword``` 
+**BRAHMA** The core abstraction here is a Channel and is set-up by using the ```chan``` function.  Imagine a channel like a pipe, where at one end can push messages and listen to them at the other end by registering a listener. To this function, we pass a ```dropping-buffer``` which essentially drops the messages that it receives when the internal buffer becomes full.  We then transform the string messages it receives from the Websocket connection ```ws-conn``` to JSON and further to a map using the transformation function ```keyword``` 
 
 ```clojure
 (defn- parse-message [message-str] (json/parse-string message-str keyword))
 ```
 
-**BRAHMA** The channel is set into a continuous ```go-loop``` and ```recur```, it loops until the stop function is called.  We read the message from ```ws-conn``` by ```deref```ing it and the associated stream.  This message is pushed on to the channel and is now available for the listeners.
+**BRAHMA** The channel is set into a continuous loop using ```go-loop``` and ```recur```. It loops until the stop function is called.  We read the message from ```ws-conn``` by ```deref```ing it and the associated stream.  This message is pushed on to the channel and is now available for the listeners.
 
+**BRAHMA** Next, lets look at the ```add-listener``` function.
+// Jaju, please fill up explanation here.
 
-![Clojure-Channels](Clojure-Channels.png)
+```clojure
+(defn add-listener [m listener-fn]
+  (let [stop?   (atom false)
+        ch      (chan (async/dropping-buffer 32))
+        _       (tap m ch)
+        stop-fn (fn []
+                  (untap m ch)
+                  (reset! stop? true))]
+    (go-loop []
+      (when-let [message (<! ch)]
+        (listener-fn message)
+        (if-not @stop?
+          (recur))))
+    stop-fn))
 
-// Jaju, please fill up clojure here
+```
+**BRAHMA** So, thats how it looks using core-async library in Clojure.  Can you show me how would you implement this in languages like C#, Java or Scala
 
-**KRISHNA** Let me show you this using Reactive Extensions in Java.  Thisis the main method where all actions are happening.
+**KRISHNA** Ok, let me show you this using Reactive Extensions in Java.  Thisis the main method where all actions are happening.
 
 ```java
 // Runner.java
@@ -205,9 +244,9 @@ public static void main(String[] args) throws Exception {
 }
 ```
 
-So, thats using Rx we've solved the problem.
+**BRAHMA** So, thats using Rx we've solved the problem.  Now lets reflect on the two approaches.
 
-## Reflections
+## Reflections (TODO)
 
 **BRAHMA** 
 
