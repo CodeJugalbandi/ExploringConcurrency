@@ -1,6 +1,6 @@
-# Functional Programming to the Rescue (Structure)
+# Functional Programming to the Rescue
 
-In this melody, we will look at how FP rescues us from the pitfalls by shifting our focus on to the "what" than on to the "how".  We will contrast on how it simplifies the approach to concurrency and parallelism by raising the level of abstraction to a point where the shift in focus is achieved at a conceptual domain level, rather than worrying about the associated plumbing (and boiler-plate) code to get there.  
+In this melody, we will look at how FP rescues us from the pitfalls by shifting our focus on to the "what" rather than the "how".  We will contrast on how it simplifies the approach to concurrency and parallelism by raising the level of abstraction to a point where the shift in focus is achieved at a conceptual domain level, rather than worrying about the associated plumbing (and boiler-plate) code to get there.  
 
 Etymologically the structure of concurrent code has been different from the structure of sequential code.  But, we shall see how FP can be leveraged to provide a syntactic layer with async-await using a library or within a language  to make the structure of sequential code and parallel code look similar.
 
@@ -166,7 +166,7 @@ class Result {
 }
 ```
 
-**KRISHNA** Again, if you look the code it is too verbose and we have to manage the synchronization point, in this case using a ```CountdownEvent```. Further we also deal with  ```Threadpool``` to queue the task.  Let me show you Clojure, where all this boiler-plate is shoved under an abstraction ```future``` that deals with all of this.
+**KRISHNA** Again, if you look the code it is too verbose and we have to manage the synchronization point, in this case using a ```CountdownEvent```. Further we also deal with  ```Threadpool``` to queue the task.  Let me show you Clojure, where all this boiler-plate is shoved under an abstraction ```future```.
 
 ```clojure
 (ns weather-and-places)
@@ -201,7 +201,7 @@ class Result {
 (shutdown-agents)
 ```
 
-**KRISHNA** So, here there is no explicit synchronization point and threadpool that we manage.  A ```future``` itself is backed by a thread from the threadpool and we simply call ```shutdown-agents``` in the end to close it.  Due to this, the code is deviod of boilerplate, bringing out the essence of domain to the fore, rather than being muddled within the boilerplate.  Also, ```future``` is a higher order function that provides asynchronous computation unit.
+**KRISHNA** So, here there is no explicit synchronization point and threadpool that we manage.  A ```future``` itself is backed by a thread from the default threadpool and we simply call ```shutdown-agents``` in the end to close it.  Due to this, the code is deviod of boilerplate, bringing out the essence of domain to the fore, rather than being muddled within the boilerplate.  Also, ```future``` is a higher order function that provides an asynchronous computation unit.
 
 **BRAHMA** However, if we look at all this we are still pull based - the ```@```  deref operator.  It would be better if we had Push based, so that we get called when the latent tasks finish, instead of blocking the main thread to gather partial results.  Lets look at JavaScript.
 
