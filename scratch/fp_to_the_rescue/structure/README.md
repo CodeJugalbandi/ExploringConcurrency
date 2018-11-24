@@ -1,4 +1,4 @@
-# Functional Programming to the Rescue
+# Functional Programming to the Rescue (Structure)
 
 In this melody, we will look at how FP rescues us from the pitfalls by shifting our focus on to the "what" rather than the "how".  We will contrast on how it simplifies the approach to concurrency and parallelism by raising the level of abstraction to a point where the shift in focus is achieved at a conceptual domain level, rather than worrying about the associated plumbing (and boiler-plate) code to get there.  
 
