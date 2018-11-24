@@ -1,6 +1,6 @@
 # Everything is an Event (Pushing Multiple Values)
 
-In this melody, we will look at how reactive programming uses Functional Programming and increases the concurrency in the system.  
+In this melody, we will look at how reactive programming uses Functional Programming and helps with the concurrency in the system.  Typically, with the help of Functional Programming, all the effects of synchronization and thread management are pushed inside the functions or monads.  As a user, we work at conceptual domain level using pure functions, and be assured that concurrency and the related concerns will be taken care of.
 
 ## Problem Statement
 1. Streaming NetWorth
@@ -69,7 +69,6 @@ defn create-message-stream [url & {:keys [on-connect before-disconnect]
 **BRAHMA** The channel is set into a continuous loop using the ```go-loop``` + ```recur``` construct. It loops until the stop function is called.  We read the message from ```ws-conn``` using the ```s/take!``` function.  This message is pushed on to the channel, where the multiplier channel furthers copies of these messages to the _tapped_ channels.
 
 **BRAHMA** Next, lets look at the ```add-listener``` function.
-// Jaju, please fill up explanation here.
 
 ```clojure
 (defn add-listener [m listener-fn]
@@ -89,7 +88,7 @@ defn create-message-stream [url & {:keys [on-connect before-disconnect]
 
 ***BRAHMA*** ```add-listener``` is just a generic function that _tap_-s a new channel to the _multiplier_ and starts a _go-loop_, invoking the ```listener-fn``` function for every message received on this tapped channel. Asynchronously. The return value is a handle function that, when invoked, disconnects the tap via ```untap``` and exits the _go-loop_.
 
-**BRAHMA** So, thats how it looks using _core.async_ library in Clojure.  Can you show me how you would implement this in languages like C#, Java or Scala?
+**BRAHMA** So, thats how it looks using _core.async_ library in Clojure.  Can you show me how you would implement this in languages like JavaScript, C#, Java or Scala?
 
 **KRISHNA** Okay. Let me demonstrate Reactive Extensions in Java.  Look at the main method where all the action is.
 
@@ -201,7 +200,7 @@ static Flowable<JSONObject> pricesWithBrokerage(Flowable<JSONObject> stockPrices
 }
 ```
 
-and the ```netWorth``` using the ```stockPrices``` stream.  In the ```netWorth``` stream, we calculate the running total on each tick using ```scan```, ```map``` and ```reduce``` operators.
+**KRISHNA** and the ```netWorth``` using the ```stockPrices``` stream.  In the ```netWorth``` stream, we calculate the running total on each tick using ```scan```, ```map``` and ```reduce``` operators.
 
 ```java
 public Flowable<Double> netWorth(Flowable<JSONObject> stockPrices) throws Exception {
@@ -216,7 +215,7 @@ public Flowable<Double> netWorth(Flowable<JSONObject> stockPrices) throws Except
 }
 ```
 
-So, on each price tick, all the things are re-calculated, without making the system unresponsive.  In case, we don't need any of the streams, we can then dispose them off and when we need them, we can start them again.
+**KRISHNA** So, on each price tick, all the things are re-calculated, without making the system unresponsive.  In case, we don't need any of the streams, we can then dispose them off and when we need them, we can start them again.
 
 ```java
 public static void main(String[] args) throws Exception {
@@ -247,17 +246,16 @@ public static void main(String[] args) throws Exception {
 
 **BRAHMA** So, thats using Rx we've solved the problem.  Now lets reflect on the two approaches.
 
-## Reflections (TODO)
+## Reflections
 
 **BRAHMA** Pushing values is akin to giving a person her task(s) and then allowing them to take those away in their own private spaces and work - undisturbed.
 
-Contrast that with shared datastructures and updates to them by multiple pieces of logic. It can get chaotic and messy, which requires us to come up with synchronization primitives like locks/mutexes.
+Contrast that with shared datastructures and updates to them by multiple pieces of logic. It can get chaotic and messy (race conditions), which requires us to come up with synchronization primitives like locks/mutexes.   Debugging such a code is a hair pulling activity!
 
 When pushing values to executors, there is a common framework - typically _hidden_ from the targeted developer - where synchronization is taken care of. But by pushing synchronization concerns to the framework, the developer can focus on domain logic, and typically working on a related set of domain data to achieve a well-defined outcome, without the worry of being aware of the framework in which they operate.
 
-This approach suits functional programming very well, where operations on (preferably immutable) datastructures can be developed and tested independently of the environment in which they will be executed. And common concerns like scaling, error-handling with retries, or backpressure policies, are independently implemented and made available without leaking into the domain code. _core.async_ and _Reactive Extensions_ are beautiful examples of this approach.
+**KRISHNA** This approach suits functional programming very well, where operations on (preferably immutable) datastructures can be developed and tested independently of the environment in which they will be executed. And common concerns like scaling, error-handling with retries, or backpressure policies, are independently implemented and made available without leaking into the domain code. _core.async_ and _Reactive Extensions_ are beautiful examples of this approach.
 
 
-**KRISHNA** 
 
 
