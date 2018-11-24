@@ -12,7 +12,7 @@ In this melody, we will look at how reactive programming uses Functional Program
 
 ## CodeJugalbandi
 
-**BRAHMA** In Clojure, we have the core-async library that can help us create a highly concurrent system.  Lets start by looking at the ```main``` function.  In here, we define a ```streamer```, which essentially creates a connection to the Web-Socket end-point using the supplied url and consumes ```on-connect``` and ```before-disconnect``` callbacks required for subscription and unsubscription by the end-point to which we are connecting.  Once the connection is made, we get a Channel - ```ch``` from the ```streamer```.  Along with that, we also get a ``stop-fn`` useful to stop streaming the prices.  
+**BRAHMA** In Clojure, we have the _core.async_ library that helps us create highly concurrent systems.  Let's start by looking at the ```main``` function.  In here, we define a ```streamer```, which essentially creates a connection to the web-socket end-point using the supplied url and consumes ```on-connect``` and ```before-disconnect``` callbacks required for subscription and unsubscription by the end-point to which we are connecting.  Once the connection is made, we get a _channel_ - ```ch``` - from the ```streamer```.  Along with that, we also get a ```stop-fn``` useful to stop streaming the prices.  
 
 ```clojure
 (defn -main [& args]
@@ -32,7 +32,7 @@ In this melody, we will look at how reactive programming uses Functional Program
   (def print-stop-fn (add-listener m stock-info-printer))
   (def net-worth-print-stop-fn (add-listener m (net-worth-printer portfolio))))
 ```  
-**BRAHMA** Now, in Clojure, we can only connect one listener to a channel, hence we need to create a multiplexed channel from the existing channel using the ```async/mult``` function.  To this async channel, we can then connect multiple listeners.  We connect two listeners - a ```buy-price-printer``` and a ```net-worth-printer``` and start listening to messages on that.  The overall connection look like as shown in the diagram below:
+**BRAHMA** Our situation requires the messages streamed over the channel to be consumed for distinct, independent requirements. To enable easier separation of these concerns, we create a multiplexed channel from the existing channel using the ```async/mult``` function.  To this async channel, we can then connect (and disconnect) at runtime, multiple listener channels via the ```async/tap``` (and ```async/untap```) functions.  In this example, we connect two listeners - a ```buy-price-printer``` and a ```net-worth-printer```.  The overall flow looks like as shown in the diagram below:
 
 ![Clojure-Channels](Clojure-Channels.png)
 
@@ -60,13 +60,13 @@ defn create-message-stream [url & {:keys [on-connect before-disconnect]
     {:ch ch :stop-fn stop-fn}))
 ```
 
-**BRAHMA** The core abstraction here is a Channel and is set-up by using the ```chan``` function.  Imagine a channel like a pipe, where at one end can push messages and listen to them at the other end by registering a listener. To this function, we pass a ```dropping-buffer``` which essentially drops the messages that it receives when the internal buffer becomes full.  We then transform the string messages it receives from the Websocket connection ```ws-conn``` to JSON and further to a map using the transformation function ```keyword``` 
+**BRAHMA** The core abstraction here is a **Channel** and is set-up by using the ```chan``` function.  Imagine a channel like a pipe, where at one end can push messages using ```async/>!``` and consume from the other side using ```async/<!```. To this _chan_ function, we pass a ```dropping-buffer``` - one of the three variants of message buffers that _chan_-s use - that drops the latest messages that it receives when the internal buffer becomes full.  We then transform the string messages it receives from the Websocket connection ```ws-conn``` to JSON using the ```parse-message``` function. 
 
 ```clojure
 (defn- parse-message [message-str] (json/parse-string message-str keyword))
 ```
 
-**BRAHMA** The channel is set into a continuous loop using ```go-loop``` and ```recur```. It loops until the stop function is called.  We read the message from ```ws-conn``` by ```deref```ing it and the associated stream.  This message is pushed on to the channel and is now available for the listeners.
+**BRAHMA** The channel is set into a continuous loop using the ```go-loop``` + ```recur``` construct. It loops until the stop function is called.  We read the message from ```ws-conn``` using the ```s/take!``` function.  This message is pushed on to the channel, where the multiplier channel furthers copies of these messages to the _tapped_ channels.
 
 **BRAHMA** Next, lets look at the ```add-listener``` function.
 // Jaju, please fill up explanation here.
@@ -85,11 +85,13 @@ defn create-message-stream [url & {:keys [on-connect before-disconnect]
         (if-not @stop?
           (recur))))
     stop-fn))
-
 ```
-**BRAHMA** So, thats how it looks using core-async library in Clojure.  Can you show me how would you implement this in languages like C#, Java or Scala
 
-**KRISHNA** Ok, let me show you this using Reactive Extensions in Java.  Thisis the main method where all actions are happening.
+***BRAHMA*** ```add-listener``` is just a generic function that _tap_-s a new channel to the _multiplier_ and starts a _go-loop_, invoking the ```listener-fn``` function for every message received on this tapped channel. Asynchronously. The return value is a handle function that, when invoked, disconnects the tap via ```untap``` and exits the _go-loop_.
+
+**BRAHMA** So, thats how it looks using _core.async_ library in Clojure.  Can you show me how you would implement this in languages like C#, Java or Scala?
+
+**KRISHNA** Okay. Let me demonstrate Reactive Extensions in Java.  Look at the main method where all the action is.
 
 ```java
 // Runner.java
@@ -124,7 +126,7 @@ public static void main(String[] args) throws Exception {
 ```
 ![Rx-Observables](Rx-Observables.png)
 
-**KRISHNA** As, you can see that ```nationalStockExchangeFeed()``` returns a continuous real-time price from the National Stock Service as a ```Flowable<JSONObject>```.  In RxJava2 there are two types, ```Observable``` and ```Flowable```.  The difference between them is that ```Flowable``` can handle backpressure, while Observable cannot.  In RxJava1, it was ```Observable``` only.  For the purposes of the current   explanation, I'll ignore this technical difference and treat ```Flowable``` and ``Observable`` in an informal sense by treating them synonymously.  So, though the code says ```Flowable```, I'll refer to it as an ```Observable```.  I'll come to ```Flowable``` when we see that piece of code.
+**KRISHNA** As, you can see that ```nationalStockExchangeFeed()``` returns a continuous real-time price from the National Stock Service as a ```Flowable<JSONObject>```.  In RxJava2 there are two types - ```Observable``` and ```Flowable```.  The difference between them is that ```Flowable``` can handle backpressure, while Observable cannot.  RxJava1 only had ```Observable```.  For the purposes of the current explanation, I'll ignore this technical difference and treat ```Flowable``` and ``Observable`` in an informal sense by treating them synonymously.  So, though the code says ```Flowable```, I'll refer to it as an ```Observable```.  I'll come to ```Flowable``` when we see that piece of code.
 
 ```java
 // Runner.java
@@ -134,7 +136,6 @@ static Flowable<JSONObject> nationalStockExchangeFeed() {
     .filter(json -> json.has("ticker"));
 }
 ```
-
 
 **KRISHNA** This function uses ```RealTimeNationalStockService``` - a stand-in that subscribes to the realtime prices from the National Stock Service using Web-Socket and has an ```asFlowable()``` method to create an Observable.  As we receive other JSON messages along with stock price message, a filter has been set-up to allow only pricing related messages.  Now, lets look at the ```asFlowable()``` method of the ```RealTimeNationalStockService```
 
