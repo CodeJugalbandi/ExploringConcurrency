@@ -249,7 +249,13 @@ public static void main(String[] args) throws Exception {
 
 ## Reflections (TODO)
 
-**BRAHMA** 
+**BRAHMA** Pushing values is akin to giving a person her task(s) and then allowing them to take those away in their own private spaces and work - undisturbed.
+
+Contrast that with shared datastructures and updates to them by multiple pieces of logic. It can get chaotic and messy, which requires us to come up with synchronization primitives like locks/mutexes.
+
+When pushing values to executors, there is a common framework - typically _hidden_ from the targeted developer - where synchronization is taken care of. But by pushing synchronization concerns to the framework, the developer can focus on domain logic, and typically working on a related set of domain data to achieve a well-defined outcome, without the worry of being aware of the framework in which they operate.
+
+This approach suits functional programming very well, where operations on (preferably immutable) datastructures can be developed and tested independently of the environment in which they will be executed. And common concerns like scaling, error-handling with retries, or backpressure policies, are independently implemented and made available without leaking into the domain code. _core.async_ and _Reactive Extensions_ are beautiful examples of this approach.
 
 
 **KRISHNA** 
