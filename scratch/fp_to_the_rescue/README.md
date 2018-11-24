@@ -286,7 +286,7 @@ Await.result(weatherAndPlacesNearby, Duration.Inf) // Wait for results, only for
 
 **BRAHMA** True, and then the data-push was more focussed upon and we relied on callbacks, but that lead to callback hell and so Monads like ```Task``` in ```C#```, ```Promise``` in ```JavaScript``` and ```Future``` in Scala bailed us out.  However, still the structure of concurrent code and sequential code was different. With the compile-time transformations, we got async-await in languages like C#, JavaScript and Scala.  This brought us still closer to sequential code.  But with Eta ```Fiber```s one cannot differentiate between sequential code and parallel by looking at it, one has to look at the types to discern that.
 
-**KRISHNA** Also, one of the most important contributions of FP in solving concurrency related race conditions and synchronization was to get rid the shared mutable state altogether.  This is quite a departure from the old way of doing thing.  We now can reason about code with confidence using FP.  Truely, it has rescued us out from the perils that we faced in the early days.
+**KRISHNA** Also, what we did not see this in this melody is how FP saves us from concurrency related race conditions and synchronization by getting rid of shared mutable state altogether.  This is quite a departure from the old way of doing things.  This is also one of the important contributions of FP.  It deserves a separate melody by itself.  This melody was focussed on the structure of the sequential and concurrent code.  We now can reason about code with confidence using FP.  Truely, it has rescued us out from the perils that we faced in the early days.
 
 
 
