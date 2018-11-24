@@ -1,6 +1,6 @@
 # Concurrency And Parallelism
 
-Concurrency and Parallelism, these two words have been used quite synonomously and have been easily interchanged with the other.  But many, like Phil Wadler, Simon Peyton Jones and Simon Marlow have given very precise distinctions between these.  In this melody, we will delineate concurrency and parallelism using two problems.
+Concurrency and Parallelism, these two words have been used quite synonymously and have been easily interchanged with the other.  But many, like Phil Wadler, Simon Peyton Jones and Simon Marlow have given very precise distinctions between these.  In this melody, we will delineate concurrency and parallelism using two problems.
 
 ## Problem Statement
 
@@ -9,7 +9,7 @@ Concurrency and Parallelism, these two words have been used quite synonomously a
 
 ## CodeJugalbandi
 
-**BRAHMA** Lets tackle Concurrency by looking at this single-threaded Echo TCP-Server in Java.  It waits for connections after creating a ```ServerSocket```.  Once it accepts an incoming socket connection from a client, it goes into an infinite loop, serving that client, by echoing whatever the client sends, except for a ```QUIT``` message.  
+**BRAHMA** Lets tackle Concurrency by looking at this single-threaded Echo TCP-Server in Java.  It waits for connections after creating a ```ServerSocket```.  Once it accepts an incoming socket connection from a client, it goes into an infinite loop, serving that client, by echoing whatever the client sends, except for a ```QUIT``` message - when it moves on to the next waiting client.  
 
 ```java
 public class Server implements AutoCloseable {
@@ -182,8 +182,6 @@ Sending to Server: HELO3
 
 ```shell
 $> telnet localhost 8080
-Trying ::1...
-Connection failed: Connection refused
 Trying 127.0.0.1...
 Connected to localhost.
 Escape character is '^]'.
@@ -466,7 +464,6 @@ Server Sent: HELO3
 
 **KRISHNA** I see what you say... it is important to realize that in the case of earlier concurrent server as well as in this implementation of concurrent server, each of the threads created are serving a particular client oblivious to each other's existence and in no way related to each other.  **They operate independently each serving the client directly**.  Whereas in the splitting I/O task case for getting stock prices, each of the thread was spawned and then the **partial results from each thread was collected to get the total result back as a list of stock prices, which was then served by the main thread to the client**.  So, there is a need for an explicit co-ordinating mechanism that orchestrates this splitting of tasks, scheduling them to collect partial results,  subsequently create a total result and send to the client.  This, I think is the most important factor that delineates Concurrency and Parallelism.
 
-**BRAHMA** Yes, indeed! The goal of **Parallelism is Performance** while preserving the functionality of the system, whereas the goal of **Concurrency is Responsiveness**.  These two properties of system are completely orthogonal.  Though both, Concurrency and Parallelism use threads for their implementations, it is important to determine whether these threads are co-ordinated or run 
-independently of each other.  
+**BRAHMA** Yes, indeed! The goal of **Parallelism is Performance** while preserving the functionality of the system, whereas the goal of **Concurrency is Responsiveness**.  These two properties of system are completely orthogonal.  Though both, Concurrency and Parallelism use threads for their implementations, it is important to determine whether these threads are co-ordinated or run independently of each other.  
 
 **KRISHNA** Also, one can mix concurrency and parallelism in the same program and make it responsive and performant at the same time.  Lets move to the next melody.
