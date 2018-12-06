@@ -319,37 +319,50 @@ Overall Time 3748(ms)
 NetWorth = 17192.199999999997
 ```
 
-**MAHESH** Let me show you how this would look in APL.
+**MAHESH** Let me show you how this would look in APL. GetPrice is a function which
+does an HTTP POST to retrieve te price for a single stock. In the code below, the central
+expression is (price←Getprice¨codes), in which we use the use the "each" operator (¨)
+to map GetPrice to each element of the array containing stock codes:
 
 ```apl
+
 PortfolioSequential←{
   codes←'GOOG' 'AAPL' 'YHOO' 'MSFT' 'ORCL' 'AMZN' 'GOOG'
   quantity←10 20 30 40 40 50 90
 
-  starttime←⎕AI[2]
-  price←GetPrice¨codes       ⍝ ¨  (each) is sequential
-  networth←price+.×quantity
-  ⎕←'Sequential net worth: 'networth('elapsed ms: ',⍕⎕AI[2]-starttime)
+  starttime←SessionTime
+  price←GetPrice¨codes       ⍝ Get all prices
+  networth←price+.×quantity  ⍝ Multiply prices by quantities and sum (vector product)
+  ⎕←'Sequential net worth: 'networth('elapsed ms: ',⍕SessionTime-starttime)
 }
 
 Sequential net worth:   17194.5  elapsed ms: 8360 
 ```
 
-**MAHESH** All I need to do is introduce the ```#.IÏ``` parallel operator, as you can see the the two upper-cased I's mean parallelise the opertion.  Here every price is obtained using a seperate single-threaded process that is spawned by APL.  The inner product is obtained only after every single price is obtained.
+**MAHESH** The each operator ¨ is a sequential map, so each of
+the seven calls to GetPrice has to complete before the next one starts.
+To go parallel, we will one day be able to add a parallel operator
+∥ and write GetPrice∥¨codes (read: parallel each). However, at this point in time there is
+a trial implementation called IÏ (so named because that looks a bit like ∥¨):
 
 ```apl
 PortfolioParallel←{
   codes←'GOOG' 'AAPL' 'YHOO' 'MSFT' 'ORCL' 'AMZN' 'GOOG'
   quantity←10 20 30 40 40 50 90
      
-  starttime←⎕AI[2]
-  price←GetPrice #.IÏ codes  ⍝ IÏ is model of ∥¨ (parallel each)
-  networth←price+.×quantity
-  ⎕←'Parallel net worth: 'networth('elapsed ms: ',⍕⎕AI[2]-starttime)
+  starttime←SessionTime
+  price←GetPrice IÏ codes   ⍝ IÏ is model of ∥¨ (parallel each)
+  networth←price+.×quantity ⍝ Multiply prices by quantities and sum (vector product)
+  ⎕←'Parallel net worth: 'networth('elapsed ms: ',⍕SessionTime-starttime)
 }
 
 Parallel net worth:   19337.1  elapsed ms: 1234  
 ```
+**MAHESH** The parallel operator invokes the function somewhere in a pool of proceses,
+and immediately returns a future. price becomes an array of 7 futures, each of which
+is realized when the corresponding function call completes. On the next line,
+when price is used in a calculation, APL will automatically block until all
+values are known, before peforming the vector product.
 
 **BRAHMA** This is indeed interesting to see parallel code rendered in APL.  Java Streams, like the APL ```#.IÏ``` parallel operator have a parallel switch, I'll simply turn on the ```parallel()``` switch on the ```Stream``` and this code now runs in parallel.  Internally, threads are unleashed and each I/O request is now made on a separate thread.
 
@@ -461,6 +474,16 @@ Server Sent: HELO3
 ## Reflections
 
 **BRAHMA** In this concurrent server implementation, though we have used the ```parallel()``` switch of the ```Stream``` to accept the connections, it is not an important thing to decide, whether this is parallel or concurrent.  It is still concurrent.  Apart from Server's main thread, there are other threads that can accept new client connections and are not held hostage by a single client, as we still have our ```CompletableFuture``` that handles the client in a separate thread.  So, a new client connecting to the server will never know, how many other clients are currently being served at the same time.  
+
+**MAHESH** The APL ∥ operator, which we call parallel, is also possibly misnamed: It
+invokes a function concurrently and can be used to construct both parallel and
+concurrent solutions. It is really the construct ∥¨ (parallel each) that
+makes this a something we would call parallel. In some ways, you could even say that
+it is the resulting USE of the results, in the expression (networth←price+.×quantity),
+where all the values are used at once and require synchronization, that defines this as a 
+parallel rather than concurrent solution. If instead we had used each price independently
+as and when the value was returned, it would be more appopriate to call it
+asynchronous.
 
 **KRISHNA** I see what you say... it is important to realize that in the case of earlier concurrent server as well as in this implementation of concurrent server, each of the threads created are serving a particular client oblivious to each other's existence and in no way related to each other.  **They operate independently each serving the client directly**.  Whereas in the splitting I/O task case for getting stock prices, each of the thread was spawned and then the **partial results from each thread was collected to get the total result back as a list of stock prices, which was then served by the main thread to the client**.  So, there is a need for an explicit co-ordinating mechanism that orchestrates this splitting of tasks, scheduling them to collect partial results,  subsequently create a total result and send to the client.  This, I think is the most important factor that delineates Concurrency and Parallelism.
 
