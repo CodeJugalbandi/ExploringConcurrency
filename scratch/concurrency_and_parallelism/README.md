@@ -475,17 +475,9 @@ Server Sent: HELO3
 
 **BRAHMA** In this concurrent server implementation, though we have used the ```parallel()``` switch of the ```Stream``` to accept the connections, it is not an important thing to decide, whether this is parallel or concurrent.  It is still concurrent.  Apart from Server's main thread, there are other threads that can accept new client connections and are not held hostage by a single client, as we still have our ```CompletableFuture``` that handles the client in a separate thread.  So, a new client connecting to the server will never know, how many other clients are currently being served at the same time.  
 
-**MAHESH** The APL ∥ operator, which we call parallel, is also possibly misnamed: It
-invokes a function concurrently and can be used to construct both parallel and
-concurrent solutions. It is really the construct ∥¨ (parallel each) that
-makes this a something we would call parallel. In some ways, you could even say that
-it is the resulting USE of the results, in the expression (networth←price+.×quantity),
-where all the values are used at once and require synchronization, that defines this as a 
-parallel rather than concurrent solution. If instead we had used each price independently
-as and when the value was returned, it would be more appopriate to call it
-asynchronous.
-
 **KRISHNA** I see what you say... it is important to realize that in the case of earlier concurrent server as well as in this implementation of concurrent server, each of the threads created are serving a particular client oblivious to each other's existence and in no way related to each other.  **They operate independently each serving the client directly**.  Whereas in the splitting I/O task case for getting stock prices, each of the thread was spawned and then the **partial results from each thread was collected to get the total result back as a list of stock prices, which was then served by the main thread to the client**.  So, there is a need for an explicit co-ordinating mechanism that orchestrates this splitting of tasks, scheduling them to collect partial results,  subsequently create a total result and send to the client.  This, I think is the most important factor that delineates Concurrency and Parallelism.
+
+**MAHESH** Like the ```parallel()``` switch, the APL ∥ operator, which we also call parallel, is also possibly misnamed: It essentially invokes a function asynchonously and can be used to construct both parallel and concurrent solutions. It is really the combination of parallel with each (∥¨) that simultaneously starts several functions at the same time, that makes it parallel. In some ways, one might even say that it is the resulting USE of the results, in the expression (networth←price+.×quantity), where **all the values are used at once**, requiring synchronization, that defines this as a parallel rather than concurrent solution. At the lowest level, we have an ability to launch functions **asynchronously**. Whether the asynchonous call implements concurrency or parallelism depends on the pattern of usage.
 
 **BRAHMA** Yes, indeed! The goal of **Parallelism is Performance** while preserving the functionality of the system, whereas the goal of **Concurrency is Responsiveness**.  These two properties of system are completely orthogonal.  Though both, Concurrency and Parallelism use threads for their implementations, it is important to determine whether these threads are co-ordinated or run independently of each other.  
 
