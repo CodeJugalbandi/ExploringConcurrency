@@ -247,7 +247,7 @@ public class Server implements AutoCloseable {
 
 **BRAHMA** So, this is Concurrency.  
 
-**MAHESH** Let us look at Parallelism by using an example of splitting an I/O task.  I'll use APL. ```GetPrice``` is a function which does an HTTP POST to retrieve te price for a single stock. In the code below, the central expression is ```(price←Getprice¨codes)```, in which we use the use the "each" operator (```¨```) to map ```GetPrice``` to each element of the array containing stock codes:
+**MAHESH** Let us look at Parallelism by using an example of splitting an I/O task.  I'll use APL. ```GetPrice``` is a function which does an HTTP GET to retrieve the price for a single stock. In the code below, the central expression is ```(price←Getprice¨codes)```, in which we use the use the "each" operator (```¨```) to map ```GetPrice``` to each element of the array containing stock codes:
 
 ```apl
 
