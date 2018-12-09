@@ -247,7 +247,42 @@ public class Server implements AutoCloseable {
 
 **BRAHMA** So, this is Concurrency.  
 
-**BRAHMA** Let me now show you an example of Parallelism by splitting an I/O task.  Lets say we have a ```Porfolio``` comprising of several stocks.  In order to calculate the net worth of a portfolio, it uses a proxy ```NationalStockService``` which reaches out over the network to get prices of stocks it holds.  I'll begin with the sequential version first.
+**MAHESH** Let us look at Parallelism by using an example of splitting an I/O task.  I'll use APL. ```GetPrice``` is a function which does an HTTP POST to retrieve te price for a single stock. In the code below, the central expression is ```(price←Getprice¨codes)```, in which we use the use the "each" operator (```¨```) to map ```GetPrice``` to each element of the array containing stock codes:
+
+```apl
+
+PortfolioSequential←{
+  codes←'GOOG' 'AAPL' 'YHOO' 'MSFT' 'ORCL' 'AMZN' 'GOOG'
+  quantity←10 20 30 40 40 50 90
+
+  starttime←SessionTime
+  price←GetPrice¨codes       ⍝ Get all prices
+  networth←price+.×quantity  ⍝ Multiply prices by quantities and sum (vector product)
+  ⎕←'Sequential net worth: 'networth('elapsed ms: ',⍕SessionTime-starttime)
+}
+
+Sequential net worth:   17194.5  elapsed ms: 8360 
+```
+
+**MAHESH** The each operator ```¨``` is a sequential map, so each of
+the seven calls to ```GetPrice``` has to complete before the next one starts.  To go parallel, we will one day be able to add a parallel operator ```∥``` and write ```GetPrice∥¨``` codes (read: parallel each). However, at this point in time there is a trial implementation called ```IÏ``` (so named because that looks a bit like ```∥¨```):
+
+```apl
+PortfolioParallel←{
+  codes←'GOOG' 'AAPL' 'YHOO' 'MSFT' 'ORCL' 'AMZN' 'GOOG'
+  quantity←10 20 30 40 40 50 90
+     
+  starttime←SessionTime
+  price←GetPrice IÏ codes   ⍝ IÏ is model of ∥¨ (parallel each)
+  networth←price+.×quantity ⍝ Multiply prices by quantities and sum (vector product)
+  ⎕←'Parallel net worth: 'networth('elapsed ms: ',⍕SessionTime-starttime)
+}
+
+Parallel net worth:   19337.1  elapsed ms: 1234  
+```
+**MAHESH** The parallel operator invokes the function somewhere in a pool of proceses, and immediately returns a future. price becomes an array of 7 futures, each of which is realized when the corresponding function call completes. On the next line, when price is used in a calculation, APL will automatically block until all values are known, before peforming the vector product.
+
+**BRAHMA** This is indeed interesting to see parallel code rendered in APL. Let me now show the same rendered in Java.  Lets say we have a ```Porfolio``` comprising of several stocks.  In order to calculate the net worth of a portfolio, it uses a proxy ```NationalStockService``` which reaches out over the network to get prices of stocks it holds.  I'll begin with the sequential version first.
 
 ```java
 public class Portfolio {
@@ -319,42 +354,7 @@ Overall Time 3748(ms)
 NetWorth = 17192.199999999997
 ```
 
-**MAHESH** Let me show you how this would look in APL. ```GetPrice``` is a function which does an HTTP POST to retrieve te price for a single stock. In the code below, the central expression is ```(price←Getprice¨codes)```, in which we use the use the "each" operator (```¨```) to map ```GetPrice``` to each element of the array containing stock codes:
-
-```apl
-
-PortfolioSequential←{
-  codes←'GOOG' 'AAPL' 'YHOO' 'MSFT' 'ORCL' 'AMZN' 'GOOG'
-  quantity←10 20 30 40 40 50 90
-
-  starttime←SessionTime
-  price←GetPrice¨codes       ⍝ Get all prices
-  networth←price+.×quantity  ⍝ Multiply prices by quantities and sum (vector product)
-  ⎕←'Sequential net worth: 'networth('elapsed ms: ',⍕SessionTime-starttime)
-}
-
-Sequential net worth:   17194.5  elapsed ms: 8360 
-```
-
-**MAHESH** The each operator ```¨``` is a sequential map, so each of
-the seven calls to ```GetPrice``` has to complete before the next one starts.  To go parallel, we will one day be able to add a parallel operator ```∥``` and write ```GetPrice∥¨``` codes (read: parallel each). However, at this point in time there is a trial implementation called ```IÏ``` (so named because that looks a bit like ```∥¨```):
-
-```apl
-PortfolioParallel←{
-  codes←'GOOG' 'AAPL' 'YHOO' 'MSFT' 'ORCL' 'AMZN' 'GOOG'
-  quantity←10 20 30 40 40 50 90
-     
-  starttime←SessionTime
-  price←GetPrice IÏ codes   ⍝ IÏ is model of ∥¨ (parallel each)
-  networth←price+.×quantity ⍝ Multiply prices by quantities and sum (vector product)
-  ⎕←'Parallel net worth: 'networth('elapsed ms: ',⍕SessionTime-starttime)
-}
-
-Parallel net worth:   19337.1  elapsed ms: 1234  
-```
-**MAHESH** The parallel operator invokes the function somewhere in a pool of proceses, and immediately returns a future. price becomes an array of 7 futures, each of which is realized when the corresponding function call completes. On the next line, when price is used in a calculation, APL will automatically block until all values are known, before peforming the vector product.
-
-**BRAHMA** This is indeed interesting to see parallel code rendered in APL.  Java Streams, like the APL ```#.IÏ``` parallel operator have a parallel switch, I'll simply turn on the ```parallel()``` switch on the ```Stream``` and this code now runs in parallel.  Internally, threads are unleashed and each I/O request is now made on a separate thread.
+**BRAHMA** Java Streams, like the APL ```#.IÏ``` parallel operator have a parallel switch, I'll simply turn on the ```parallel()``` switch on the ```Stream``` and this code now runs in parallel.  Internally, threads are unleashed and each I/O request is now made on a separate thread.
 
 ```java { highlight: [9]}
 public class Portfolio {
