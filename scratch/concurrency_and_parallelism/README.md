@@ -319,10 +319,7 @@ Overall Time 3748(ms)
 NetWorth = 17192.199999999997
 ```
 
-**MAHESH** Let me show you how this would look in APL. GetPrice is a function which
-does an HTTP POST to retrieve te price for a single stock. In the code below, the central
-expression is (price←Getprice¨codes), in which we use the use the "each" operator (¨)
-to map GetPrice to each element of the array containing stock codes:
+**MAHESH** Let me show you how this would look in APL. ```GetPrice``` is a function which does an HTTP POST to retrieve te price for a single stock. In the code below, the central expression is ```(price←Getprice¨codes)```, in which we use the use the "each" operator (```¨```) to map ```GetPrice``` to each element of the array containing stock codes:
 
 ```apl
 
@@ -339,11 +336,8 @@ PortfolioSequential←{
 Sequential net worth:   17194.5  elapsed ms: 8360 
 ```
 
-**MAHESH** The each operator ¨ is a sequential map, so each of
-the seven calls to GetPrice has to complete before the next one starts.
-To go parallel, we will one day be able to add a parallel operator
-∥ and write GetPrice∥¨codes (read: parallel each). However, at this point in time there is
-a trial implementation called IÏ (so named because that looks a bit like ∥¨):
+**MAHESH** The each operator ```¨``` is a sequential map, so each of
+the seven calls to ```GetPrice``` has to complete before the next one starts.  To go parallel, we will one day be able to add a parallel operator ```∥``` and write ```GetPrice∥¨``` codes (read: parallel each). However, at this point in time there is a trial implementation called ```IÏ``` (so named because that looks a bit like ```∥¨```):
 
 ```apl
 PortfolioParallel←{
@@ -358,11 +352,7 @@ PortfolioParallel←{
 
 Parallel net worth:   19337.1  elapsed ms: 1234  
 ```
-**MAHESH** The parallel operator invokes the function somewhere in a pool of proceses,
-and immediately returns a future. price becomes an array of 7 futures, each of which
-is realized when the corresponding function call completes. On the next line,
-when price is used in a calculation, APL will automatically block until all
-values are known, before peforming the vector product.
+**MAHESH** The parallel operator invokes the function somewhere in a pool of proceses, and immediately returns a future. price becomes an array of 7 futures, each of which is realized when the corresponding function call completes. On the next line, when price is used in a calculation, APL will automatically block until all values are known, before peforming the vector product.
 
 **BRAHMA** This is indeed interesting to see parallel code rendered in APL.  Java Streams, like the APL ```#.IÏ``` parallel operator have a parallel switch, I'll simply turn on the ```parallel()``` switch on the ```Stream``` and this code now runs in parallel.  Internally, threads are unleashed and each I/O request is now made on a separate thread.
 
@@ -477,7 +467,7 @@ Server Sent: HELO3
 
 **KRISHNA** I see what you say... it is important to realize that in the case of earlier concurrent server as well as in this implementation of concurrent server, each of the threads created are serving a particular client oblivious to each other's existence and in no way related to each other.  **They operate independently each serving the client directly**.  Whereas in the splitting I/O task case for getting stock prices, each of the thread was spawned and then the **partial results from each thread was collected to get the total result back as a list of stock prices, which was then served by the main thread to the client**.  So, there is a need for an explicit co-ordinating mechanism that orchestrates this splitting of tasks, scheduling them to collect partial results,  subsequently create a total result and send to the client.  This, I think is the most important factor that delineates Concurrency and Parallelism.
 
-**MAHESH** Like the ```parallel()``` switch, the APL ∥ operator, which we also call parallel, is also possibly misnamed: It essentially invokes a function asynchonously and can be used to construct both parallel and concurrent solutions. It is really the combination of parallel with each (∥¨) that simultaneously starts several functions at the same time, that makes it parallel. In some ways, one might even say that it is the resulting USE of the results, in the expression (networth←price+.×quantity), where **all the values are used at once**, requiring synchronization, that defines this as a parallel rather than concurrent solution. At the lowest level, we have an ability to launch functions **asynchronously**. Whether the asynchonous call implements concurrency or parallelism depends on the pattern of usage.
+**MAHESH** Like the ```parallel()``` switch, the APL ```∥``` operator, which we also call parallel, is also possibly misnamed: It essentially invokes a function asynchonously and can be used to construct both parallel and concurrent solutions.  It is really the combination of parallel with each (```∥¨```) that simultaneously starts several functions at the same time, that makes it parallel. In some ways, one might even say that it is the resulting USE of the results, in the expression ```networth←price+.×quantity```, where **all the values are used at once**, requiring synchronization, that defines this as a parallel rather than concurrent solution. At the lowest level, we have an ability to launch functions **asynchronously**. Whether the asynchonous call implements concurrency or parallelism depends on the pattern of usage.
 
 **BRAHMA** Yes, indeed! The goal of **Parallelism is Performance** while preserving the functionality of the system, whereas the goal of **Concurrency is Responsiveness**.  These two properties of system are completely orthogonal.  Though both, Concurrency and Parallelism use threads for their implementations, it is important to determine whether these threads are co-ordinated or run independently of each other.  
 
