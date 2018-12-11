@@ -8,7 +8,7 @@
             [manifold.stream :as s]))
 
 ;; Given
-(defonce wss-url-template "wss://national-stock-service.herokuapp.com/stocks/realtime/%s")
+(defonce wss-url-template "ws://localhost:5000/stocks/realtime/%s")
 (defn- get-ws-url [& [ticker]] (format wss-url-template (or ticker "")))
 
 ;; Make ends meet
