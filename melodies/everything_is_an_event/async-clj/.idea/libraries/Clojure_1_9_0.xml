@@ -1,0 +1,16 @@
+<component name="libraryTable">
+  <library name="Clojure-1.9.0">
+    <ANNOTATIONS>
+      <root url="jar://$PROJECT_DIR$/lib/clojure-tools-1.9.0.394.jar!/" />
+    </ANNOTATIONS>
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/spec.alpha-0.1.143.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/clojure-1.9.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/core.specs.alpha-0.1.24.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/clojure-tools-1.9.0.394.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/core.async-0.4.474.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
