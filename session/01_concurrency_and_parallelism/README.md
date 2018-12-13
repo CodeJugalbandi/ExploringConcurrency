@@ -1,6 +1,6 @@
 # Concurrency And Parallelism
 
-Concurrency and Parallelism, these two words have been used quite synonymously and have been easily interchanged with the other.  But many, like Phil Wadler, Simon Peyton Jones and Simon Marlow have given very precise distinctions between these.  In this melody, we will delineate concurrency and parallelism using two problems.
+Concurrency and Parallelism, these two words have been used quite synonymously and have been easily interchanged with the other.  But many, like Phil Wadler, Simon Peyton Jones and Simon Marlow have given very precise distinctions between these.  In this melody, we will explore concurrency and parallelism using two problems.
 
 ## Problem Statement
 
