@@ -17,7 +17,7 @@ public class Portfolio {
     System.out.println("Stocks = " + stocks);
     List<Double> itemizedWorth = stocks.entrySet()
       .stream()
-      .parallel()  
+      // .parallel()  
       .collect(ArrayList<Double>::new, (acc, entry) -> {
         String ticker = entry.getKey();
         try {
@@ -30,7 +30,6 @@ public class Portfolio {
   }
   
   public static void main(String[] args) throws Exception {
-    Thread.sleep(10000);
     Portfolio portfolio = new Portfolio();
     portfolio.add("GOOG", 10);
     portfolio.add("AAPL", 20);
