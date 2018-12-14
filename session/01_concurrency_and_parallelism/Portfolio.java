@@ -33,7 +33,10 @@ public class Portfolio {
     portfolio.add("GOOG", 10);
     portfolio.add("AAPL", 20);
     portfolio.add("YHOO", 30);
+    portfolio.add("MSFT", 40);
     portfolio.add("ORCL", 40);
+    portfolio.add("AMZN", 50);
+    portfolio.add("GOOG", 90);
     System.out.println("NetWorth = " + portfolio.netWorth(new NationalStockService()));
     System.out.println("DONE");
   }
