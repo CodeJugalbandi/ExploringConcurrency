@@ -125,9 +125,10 @@ class Result {
 
 **KRISHNA** So, here there is no explicit synchronization point and threadpool that we manage.  A ```future``` itself is backed by a thread from the default threadpool and we simply call ```shutdown-agents``` in the end to close it.  In a real application, we would write this at a place where we handle program termination.  Due to this, the code is deviod of boilerplate, bringing out the essence of domain to the fore, rather than being muddled within the boilerplate.  Also, ```future``` is a higher order function that provides an asynchronous computation unit.
 
-**MAHESH** Ok, let me show you some APL code. TODO: @Morten Pls fill up more here 
+**MAHESH** Ok, let me show you some APL code.
 
-``` WeatherParallel←{
+``` 
+WeatherParallel←{
      ⍝ Retrieve weather and location data in parallel using futures
 
      host←'https://geographic-services.herokuapp.com:8000'
