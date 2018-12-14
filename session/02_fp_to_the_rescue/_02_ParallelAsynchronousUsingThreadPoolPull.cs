@@ -13,13 +13,10 @@ class _02_ParallelAsynchronousUsingThreadPoolPull
     string placesNearbyUrl = $"{host}{nearbyPath}?{lat}&{lon}&{radius}&{units}";
     string weatherUrl = $"{host}{weatherPath}?{lat}&{lon}";
     using (var latch = new CountdownEvent(2)) {
-      var sw = Stopwatch.StartNew();
       var placesNearbyResult = MakeRequest(placesNearbyUrl, latch);
       var weatherResult = MakeRequest(weatherUrl, latch);
       // Wait for both tasks to complete
       latch.Wait();  
-      sw.Stop();
-      Console.WriteLine($"Got Results in {sw.Elapsed.TotalMilliseconds}(ms)");
       Console.WriteLine($"{{ \"weather\" : {weatherResult.data}, \"placesNearby\" : {placesNearbyResult.data} }}");
       Console.WriteLine($"{{ \"error\" : \"{weatherResult.exception}{placesNearbyResult.exception}\" }}");
     };

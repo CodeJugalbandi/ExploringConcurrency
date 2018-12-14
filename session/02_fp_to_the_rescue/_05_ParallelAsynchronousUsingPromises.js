@@ -13,16 +13,9 @@ function getRequestData(url) {
 }
 
 function weatherAndNearbyPlaces(weatherUrl, placesNearbyUrl) {
-  console.time('Time Taken');
   return Promise.all([getRequestData(weatherUrl), getRequestData(placesNearbyUrl)])
-    .then(([weather, placesNearby]) => {
-      console.timeEnd('Time Taken');
-      return JSON.parse(`{ "weather": ${weather}, "placesNearby": ${placesNearby} }`)
-    })
-    .catch(error => {
-      console.timeEnd('Time Taken');
-      return JSON.parse(`{ "error": "Request Failed ${error}" }`);
-    });
+    .then(([weather, placesNearby]) => JSON.parse(`{ "weather": ${weather}, "placesNearby": ${placesNearby} }`))
+    .catch(error => JSON.parse(`{ "error": "Request Failed ${error}" }`));
 }
 
 const host = "http://geographic-services.herokuapp.com:8000";
