@@ -14,6 +14,7 @@ def getRequestData(url: String): Future[String] = async {
 } 
 
 val host = "http://geographic-services.herokuapp.com:8000";
+// val host = "http://localhost:8000";
 val nearbyPath = "/places/nearby"; val weatherPath = "/weather";
 val lat = "lat=19.01"; val lon = "lon=72.8"; val radius = "radius=25"; val units = "unit=km";
 
