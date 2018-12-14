@@ -252,16 +252,12 @@ public class Server implements AutoCloseable {
 ```apl
 
 PortfolioSequential←{
-  codes←'GOOG' 'AAPL' 'YHOO' 'MSFT' 'ORCL' 'AMZN' 'GOOG'
-  quantity←10 20 30 40 40 50 90
-
-  starttime←SessionTime
-  price←GetPrice¨codes       ⍝ Get all prices
-  networth←price+.×quantity  ⍝ Multiply prices by quantities and sum (vector product)
-  ⎕←'Sequential net worth: 'networth('elapsed ms: ',⍕SessionTime-starttime)
-}
-
-Sequential net worth:   17194.5  elapsed ms: 8360 
+    ⍝ Compute value of our portfolio
+     codes←'GOOG' 'AAPL' 'YHOO' 'MSFT' 'ORCL' 'AMZN' 'GOOG' ⍝ Stock codes for each holding
+     quantity←10    20     30     40     40     50     90   ⍝ Quantities held
+     price←GetPrice ¨ codes ⍝ Map GetPrice function to each code, return vector of prices
+     price +.× quantity     ⍝ Compute net worth as dot product (sum of products) of prices & quantities
+ }
 ```
 
 **MAHESH** The each operator ```¨``` is a sequential map, so each of
@@ -269,16 +265,12 @@ the seven calls to ```GetPrice``` has to complete before the next one starts.  T
 
 ```apl
 PortfolioParallel←{
-  codes←'GOOG' 'AAPL' 'YHOO' 'MSFT' 'ORCL' 'AMZN' 'GOOG'
-  quantity←10 20 30 40 40 50 90
-     
-  starttime←SessionTime
-  price←GetPrice IÏ codes   ⍝ IÏ is model of ∥¨ (parallel each)
-  networth←price+.×quantity ⍝ Multiply prices by quantities and sum (vector product)
-  ⎕←'Parallel net worth: 'networth('elapsed ms: ',⍕SessionTime-starttime)
-}
-
-Parallel net worth:   19337.1  elapsed ms: 1234  
+     ⍝ Compute value of portfolio using parallel GetPrice calls
+     codes←'GOOG' 'AAPL' 'YHOO' 'MSFT' 'ORCL' 'AMZN' 'GOOG'
+     quantity←10    20     30     40     40     50     90
+     price←GetPrice IÏ codes ⍝ Map GetPrice using parallel each: IÏ is model of ∥¨ 
+     price +.× quantity      ⍝ Compute net worth as dot product (sum of products) of prices & quantities
+ }
 ```
 **MAHESH** The parallel operator invokes the function somewhere in a pool of proceses, and immediately returns a future. price becomes an array of 7 futures, each of which is realized when the corresponding function call completes. On the next line, when price is used in a calculation, APL will automatically block until all values are known, before peforming the vector product.
 
