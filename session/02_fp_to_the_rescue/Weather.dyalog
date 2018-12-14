@@ -1,4 +1,5 @@
-﻿ WeatherParallel←{
+﻿ Weather←{
+     ⍝ Get Weather and Location data sequentially
 
      host←'http://geographic-services.herokuapp.com'
      nearbyPath←'/places/nearby' ⋄ weatherPath←'/weather'
@@ -7,8 +8,7 @@
      placesNearbyUrl←host,nearbyPath,'?',lat,∊'&',¨lon radius units
      weatherUrl←host,weatherPath,'?',lat,'&',lon
 
-     placesNearbyData←GetRequestData II placesNearbyUrl ⍝ II is model of ∥
-     weatherData←GetRequestData II weatherUrl
+     placesNearbyData←getRequestData placesNearbyUrl
+     weatherData←getRequestData weatherUrl
      '{ "weather" : ',weatherData,', "placesNearby": ',placesNearbyData,' }"'
-
  }
