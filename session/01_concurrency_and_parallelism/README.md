@@ -13,23 +13,23 @@ Concurrency and Parallelism, these two words have been used quite synonymously a
 
 ```java
 public class Server implements AutoCloseable {
-  private final ServerSocket server; 
+  private final ServerSocket serverSocket; 
 	
   public Server(String host, int port, int backlogConnectionQueueLength) throws UnknownHostException, IOException {
-    server = new ServerSocket(port, backlogConnectionQueueLength, InetAddress.getByName(host));
+    serverSocket = new ServerSocket(port, backlogConnectionQueueLength, InetAddress.getByName(host));
     System.out.println(Thread.currentThread() + " Created Server");
   }
   
   public void start() {
     System.out.println(Thread.currentThread() + " Server Ready: " + server);
     while (true) {
-      acceptAndHandleNewClient(server);
+      acceptAndHandleNewClient(serverSocket);
     }
   }
 
-  private void acceptAndHandleNewClient(ServerSocket server) {
+  private void acceptAndHandleNewClient(ServerSocket serverSocket) {
     System.out.println(Thread.currentThread() + " Waiting for Incoming connections...");
-    try (Socket clientSocket = server.accept()) {
+    try (Socket clientSocket = serverSocket.accept()) {
       handleNewClient(clientSocket);
     } catch (IOException e) {
       e.printStackTrace();
@@ -219,13 +219,13 @@ Thread[main,5,main] Server Closing Connection by Sending => Ok
 
 ```java
 public class Server implements AutoCloseable {
-  private final ServerSocket server;
+  private final ServerSocket serverSocket;
   ...
   ...  
-  private void acceptAndHandleClient(ServerSocket server) {
+  private void acceptAndHandleClient(ServerSocket serverSocket) {
     System.out.println(Thread.currentThread() + " Waiting for Incoming connections...");
     try {
-      Socket clientSocket = server.accept();
+      Socket clientSocket = serverSocket.accept();
       CompletableFuture.runAsync(() -> {
         try { 
           handleNewClient(clientSocket);
@@ -407,9 +407,9 @@ public class Server implements AutoCloseable {
   ...
   ...
   public void start() {
-    System.out.println(Thread.currentThread() + " Server Ready: " + server);
+    System.out.println(Thread.currentThread() + " Server Ready: " + serverSocket);
     while (true) {
-      Collections.nCopies(4, server)
+      Collections.nCopies(4, serverSocket)
         .stream()
         .parallel()
         .forEach(this::acceptAndHandleClient);
