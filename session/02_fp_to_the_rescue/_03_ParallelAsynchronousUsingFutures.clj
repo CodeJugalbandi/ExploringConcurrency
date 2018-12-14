@@ -1,6 +1,6 @@
 (ns weather-and-places)
 
-(def http-host "http://localhost:8000")
+(def http-host "http://geographic-services.herokuapp.com:8000")
 (def nearby-path "/places/nearby")
 (def weather-path "/weather")
 

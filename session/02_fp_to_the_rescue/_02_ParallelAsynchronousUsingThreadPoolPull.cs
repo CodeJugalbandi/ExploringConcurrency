@@ -6,7 +6,7 @@ using System.Diagnostics;
 class _02_ParallelAsynchronousUsingThreadPoolPull
 {  
   public static void Main(string[] args) {
-    string host  = "http://localhost:8000";
+    string host  = "http://geographic-services.herokuapp.com:8000";
     string nearbyPath = "/places/nearby", weatherPath = "/weather";
     string lat = "lat=19.01", lon = "lon=72.8", radius = "radius=25", units = "unit=km";
     

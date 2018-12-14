@@ -4,7 +4,7 @@ import java.net.*;
 import org.json.JSONObject;
 
 public class NationalStockService {
-  private final String urlTemplate = "https://national-stock-service.herokuapp.com/stocks/%s";
+  private final String urlTemplate = "https://national-stock-service.herokuapp.com:5000/stocks/%s";
 
   public double getPrice(final String ticker) throws Exception {
     System.out.println(Thread.currentThread() + " Getting Price for => " + ticker);

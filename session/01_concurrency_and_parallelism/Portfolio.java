@@ -17,7 +17,6 @@ public class Portfolio {
     System.out.println("Stocks = " + stocks);
     List<Double> itemizedWorth = stocks.entrySet()
       .stream()
-      // .parallel()  
       .collect(ArrayList<Double>::new, (acc, entry) -> {
         String ticker = entry.getKey();
         try {

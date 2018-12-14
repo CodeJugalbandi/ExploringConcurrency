@@ -25,7 +25,7 @@ function weatherAndNearbyPlaces(weatherUrl, placesNearbyUrl) {
     });
 }
 
-const host = "http://localhost:8000";
+const host = "http://geographic-services.herokuapp.com:8000";
 const nearbyPath = "/places/nearby";
 const weatherPath = "/weather";
 const lat = "lat=19.01", lon = "lon=72.8", radius = "radius=25", units = "unit=km";
